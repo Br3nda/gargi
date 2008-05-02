@@ -95,7 +95,7 @@ function profile_generator_form($form_values = null) { # {{{
         '#title' => t('Export views'),
         '#default_value' => TRUE,
         '#weight' => 90,
-    );    
+    );
     $form['nodes'] = array(
         '#weight' => 100,
         '#type' => 'fieldset',
@@ -201,13 +201,12 @@ function profile_generator_form_submit($form_name, $form_values) {   # {{{
         $fields = array('type', 'name', 'module', 'description', 'help', 'has_title', 'title_label', 'has_body', 'body_label', 'min_word_count', 'custom', 'modified', 'locked', 'orig_type');
         while ( $nodetype = db_fetch_object($query_result) ) {
             $params = array();
-            $code .= "    db_query(\"INSERT INTO {node_type} (" . join(',',$fields) . ")\n";
-            $code .= "               VALUES (" . join(',',array_pad(array(), count($fields), "'%s'")) . ")\",\n";
+            $code .= "    db_query(\"INSERT INTO {node_type} (" . join(',',$fields) . ")\n ";
+            $code .= "             VALUES (" . join(',',array_pad(array(), count($fields), "'%s'")) . ")\",\n ";
             foreach ( $fields as $field ) {
                 $params[] = profile_generator_serialize($nodetype->$field);
             }
-            $code .= "        " . join(',', $params) . "\n";
-            $code .= "    );";
+            $code .= "            " . join(',', $params) . ");\n\n";
         }
         $code .= "\n";
     }
@@ -218,9 +217,7 @@ function profile_generator_form_submit($form_name, $form_values) {   # {{{
         $code .= "*                          TAXONOMY                         *\n";
         $code .= "************************************************************/\n";
         $code .= profile_generator_generate_inserts('vocabulary', db_query('SELECT * FROM {vocabulary}'));
-        $code .= "    while ( db_next_id('{vocabulary}_vid') < " . db_result(db_query('SELECT MAX(vid) FROM {vocabulary}')) . ") {}\n\n";
         $code .= profile_generator_generate_inserts('term_data', db_query('SELECT * FROM {term_data}'));
-        $code .= "    while ( db_next_id('{term_data}_tid') < " . db_result(db_query('SELECT MAX(tid) FROM {term_data}')) . ") {}\n\n";
         $code .= profile_generator_generate_inserts('term_hierarchy', db_query('SELECT * FROM {term_hierarchy}'));
         $code .= profile_generator_generate_inserts('term_relation', db_query('SELECT * FROM {term_relation}'));
         $code .= profile_generator_generate_inserts('term_synonym', db_query('SELECT * FROM {term_synonym}'));
@@ -240,12 +237,12 @@ function profile_generator_form_submit($form_name, $form_values) {   # {{{
 
         $query_result = db_query('SELECT * FROM {role} INNER JOIN {permission} ON {role}.rid = {permission}.rid WHERE {role}.rid > 2 ORDER BY {role}.rid');
         while ( $role = db_fetch_object($query_result) ) {
-            $code .= "    \$rid = db_next_id('{role}_rid');\n";
-            $code .= "    \$role_id[" . var_export($role->name, true) . "] = \$rid;\n";
             $code .= "    db_query(\"INSERT INTO {role} (rid,name) VALUES (%d, '%s')\", \$rid, " . var_export($role->name,true) . ");\n";
+            $code .= "    \$rid = db_last_insert_id('{role}, 'rid');\n";
+            $code .= "    \$role_id[" . var_export($role->name, true) . "] = \$rid;\n";
             $code .= "    db_query(\"INSERT INTO {permission} (rid,perm) VALUES (%d, '%s')\", \$rid, " . var_export($role->perm, true) . ");\n";
         }
-        
+
         $code .= "\n";
     }
 
@@ -280,20 +277,26 @@ function profile_generator_form_submit($form_name, $form_values) {   # {{{
     }
 
     if ( $form_values['values']['export_menus'] ) {
+
+
         $code .= "/************************************************************\n";
         $code .= "*                            MENUS                          *\n";
         $code .= "************************************************************/\n";
         $code .= "\n";
-        $code .=  "    while ( db_next_id('{menu}_mid') < 2 ) {}\n\n";
-
-        $code .= "    // first the navigation\n";
-        $code .= "    ${profile_name}_profile_install_menu('navigation', " . profile_generator_serialize(profile_generator_save_menu('navigation')) . ");\n";
-        $code .= "    // then the primary links\n";
-        $code .= "    ${profile_name}_profile_install_menu('primary-links', " . profile_generator_serialize(profile_generator_save_menu('primary-links') . ");\n";
-        $code .= "    // and then the secondary links\n";
-        $code .= "    ${profile_name}_profile_install_menu('secondary-links', " . profile_generator_serialize(profile_generator_save_menu('secondary-links') . ");\n";
-
+        $code .= "    menu_rebuild();\n";
         $code .= "\n";
+
+        $code .= "    \$query_result = db_query('TRUNCATE {menu_custom}, {menu_links}');\n";
+        $code .= "\n";
+
+        $menu_save = profile_generator_save_menu();
+        foreach ($menu_save as $menu_name => $value)
+        {
+            extract ($value);
+            $code .= "    \n// $menu_name menu\n";
+            $code .= "    db_query(\"INSERT INTO {menu_custom} (menu_name, title, description) VALUES ('$menu_name', '$title', '$description')\");\n\n";
+            $code .= "    ${profile_name}_profile_install_menu_links(" . profile_generator_serialize($children) . ",0);\n";
+        }
     }
 
     if ( $form_values['values']['export_aliases'] ) {
@@ -317,12 +320,7 @@ function profile_generator_form_submit($form_name, $form_values) {   # {{{
             $code .= "        VALUES ('%s', '%s', '%s', %d, %d, '%s', %d, %d, %d, '%s', '%s')\",\n";
             $params = array();
             foreach ( $block_fields as $field ) {
-                if ( $block->module == 'menu' && $field == 'delta') {
-                    $params[] = "\$menu[" . profile_generator_serialize($block->$field) . "]";
-                }
-                else {
-                    $params[] = profile_generator_serialize($block->$field);
-                }
+                $params[] = profile_generator_serialize($block->$field);
             }
             $code .= "        " . join(',', $params) . "\n";
             $code .= "    );\n";
@@ -349,18 +347,18 @@ function profile_generator_form_submit($form_name, $form_values) {   # {{{
         $code .= "\n";
     }
 
-    $code .= profile_generator_export_nodes($form_values['values']);
+    $code .= profile_generator_export_nodes_save($form_values['values']);
     $code .= "\n$postcode\n";
     $code .= "    return;\n";
     $code .= "}\n\n";
 
     if ( $form_values['values']['export_menus'] ) {
-        $code .= "function ${profile_name}_profile_install_menu(\$menu_name, \$menu) {\n";
+        $code .= "function ${profile_name}_profile_install_menu_links(\$menu, \$plid) {\n";
         $code .= "    foreach ( \$menu as \$item ) {\n";
-        $code .= "        \$mid = db_next_id('{menu}_mid');\n";
-        $code .= "        db_query(\"INSERT INTO {menu} (mid, pid, path, title, description, weight, type) VALUES (%d,%d,'%s','%s','%s', %d, %d)\",\n";
-        $code .= "                 \$mid, \$pid, \$item['path'], \$item['title'], \$item['description'], \$item['weight'], \$item['type']);\n";
-        $code .= "        ${profile_name}_profile_install_menu(\$mid, \$item['children']);\n";
+        $code .= "        \$item['plid'] = \$plid;\n";
+        $code .= "        menu_link_save (\$item);\n";
+        $code .= "        \$mlid = db_last_insert_id('{menu_links}', 'mlid');\n";
+        $code .= "        ${profile_name}_profile_install_menu_links(\$item['children'], \$mlid);\n";
         $code .= "    }\n";
         $code .= "}\n\n";
     }
@@ -381,8 +379,8 @@ function profile_generator_form_submit($form_name, $form_values) {   # {{{
     return;
 } # }}}
 
-function profile_generator_export_nodes($form_values) { # {{{
-    
+function profile_generator_export_nodes_save($form_values) { # {{{
+
     $output = '';
     $output .= "/************************************************************\n";
     $output .= "*                       EXPORTING NODES                     *\n";
@@ -400,14 +398,14 @@ function profile_generator_export_nodes($form_values) { # {{{
 } # }}}
 
 function profile_generator_export_views() { # {{{
-    if(module_exists('views')) { 
+    if(module_exists('views')) {
         $output = '';
         $output .= "/************************************************************\n";
         $output .= "*                       EXPORTING VIEWS                     *\n";
         $output .= "************************************************************/\n";
 
         $query_result = db_query('SELECT vid FROM {view_view}');
-        
+
         while ($view=db_fetch_object($query_result)) {
                 $output .= profile_generator_generate_inserts('view_view', db_query("SELECT * FROM {view_view} WHERE vid=%d", $view->vid));
                 $output .= profile_generator_generate_inserts('view_sort', db_query("SELECT {view_sort}.* FROM {view_sort} WHERE {view_sort}.vid=%d", $view->vid));
@@ -463,27 +461,27 @@ function profile_generator_generate_insert($table, $data, $spaces = 4) { # {{{
     return $query;
 } # }}}
 
-function profile_generator_save_menu($menu_name) {
+function profile_generator_save_menu() {
     $return_menu = array();
-    $query_result = db_query('SELECT * FROM {menu_custom}');
-    while( $menu = db_fetch_object($query_result) ) {
+    $query_result = db_query("SELECT * FROM {menu_custom}");
+
+    while ($menu = db_fetch_object($query_result)) {
         $return_menu[$menu->menu_name] = array(
             'title' => $menu->title,
             'description' => $menu->description,
             'children' => profile_generator_walk_menu($menu->menu_name, 0),
         );
     }
-    var_dump($menu);
+    return ($return_menu);
 }
 
-//function profile_generator_walk_menu($parent_id, $skip_mids = array()) { # {{{
-function profile_generator_walk_menu($menu_name, plid) { # {{{
+function profile_generator_walk_menu($menu_name, $plid) { # {{{
     $menu = array();
 
-    $query_result = db_query("SELECT * FROM {menu_links} WHERE menu_name='%s' AND plid=%d", $plid);
+    $query_result = db_query("SELECT * FROM {menu_links} WHERE menu_name='%s' AND plid=%d", $menu_name, $plid);
     while ( $item = db_fetch_object($query_result) ) {
         $item = (array) $item;
-        $item['children'] = profile_generator_walk_menu($item['mlid']);
+        $item['children'] = profile_generator_walk_menu($item['menu_name'], $item['mlid']);
         unset($item['mlid']);
         unset($item['plid']);
         $menu[] = $item;
@@ -506,7 +504,7 @@ function profile_generator_module_list() { # {{{
             'name' => $module->name,
         );
     }
-    
+
     for ( $i = 0; $i < count($modules); $i++ ) {
         for ( $j = 0; $j < count($modules) - 1; $j++ ) {
             if ( $i == $j ) {
