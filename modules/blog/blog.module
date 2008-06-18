@@ -33,11 +33,11 @@ function blog_access($op, $node, $account) {
   switch ($op) {
     case 'create':
       // Anonymous users cannot post even if they have the permission. 
-      return user_access('create blog entries', $account) && $account->uid;
+      return user_access('create blog entries', $account) && $account->uid ? TRUE : NULL;
     case 'update':
-      return user_access('edit any blog entry', $account) || (user_access('edit own blog entries', $account) && ($node->uid == $account->uid));
+      return user_access('edit any blog entry', $account) || (user_access('edit own blog entries', $account) && ($node->uid == $account->uid)) ? TRUE : NULL;
     case 'delete':
-      return user_access('delete any blog entry', $account) || (user_access('delete own blog entries', $account) && ($node->uid == $account->uid));
+      return user_access('delete any blog entry', $account) || (user_access('delete own blog entries', $account) && ($node->uid == $account->uid)) ? TRUE : NULL;
   }
 }
 
@@ -49,7 +49,7 @@ function blog_user($type, &$edit, &$user) {
     $user->content['summary']['blog'] =  array(
       '#type' => 'user_profile_item',
       '#title' => t('Blog'),
-      '#value' => l(t('View recent blog entries'), "blog/$user->uid", array('title' => t("Read @username's latest blog entries.", array('@username' => $user->name)))),
+      '#value' => l(t('View recent blog entries'), "blog/$user->uid", array('attributes' => array('title' => t("Read @username's latest blog entries.", array('@username' => $user->name))))),
       '#attributes' => array('class' => 'blog'),
     );
   }

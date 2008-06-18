@@ -1712,6 +1712,8 @@ function drupal_get_css($css = NULL) {
         // If the theme supplies its own style using the name of the module style, skip its inclusion.
         // This includes any RTL styles associated with its main LTR counterpart.
         if ($type == 'module' && in_array(str_replace('-rtl.css', '.css', basename($file)), $theme_styles)) {
+          // Unset the file to prevent its inclusion when CSS aggregation is enabled.
+          unset($types[$type][$file]);
           continue;
         }
         if (!$preprocess || !($is_writable && $preprocess_css)) {
@@ -2008,10 +2010,10 @@ function drupal_add_js($data = NULL, $type = 'module', $scope = 'header', $defer
  * are added to the page. Then, all settings are output, followed by 'inline'
  * JavaScript code. If running update.php, all preprocessing is disabled.
  *
- * @parameter $scope
+ * @param $scope
  *   (optional) The scope for which the JavaScript rules should be returned.
  *   Defaults to 'header'.
- * @parameter $javascript
+ * @param $javascript
  *   (optional) An array with all JavaScript code. Defaults to the default
  *   JavaScript array for the given scope.
  * @return
@@ -3225,6 +3227,11 @@ function drupal_write_record($table, &$object, $update = array()) {
     $update = array($update);
   }
 
+  $schema = drupal_get_schema($table);
+  if (empty($schema)) {
+    return FALSE;
+  }
+  
   // Convert to an object if needed.
   if (is_array($object)) {
     $object = (object) $object;
@@ -3232,11 +3239,6 @@ function drupal_write_record($table, &$object, $update = array()) {
   }
   else {
     $array = FALSE;
-  }
-
-  $schema = drupal_get_schema($table);
-  if (empty($schema)) {
-    return FALSE;
   }
 
   $fields = $defs = $values = $serials = $placeholders = array();
@@ -3307,16 +3309,17 @@ function drupal_write_record($table, &$object, $update = array()) {
         $object->$field = db_last_insert_id($table, $field);
       }
     }
-
-    // If we began with an array, convert back so we don't surprise the caller.
-    if ($array) {
-      $object = (array) $object;
-    }
-
-    return $return;
+  }
+  else {
+    $return = FALSE;
   }
 
-  return FALSE;
+  // If we began with an array, convert back so we don't surprise the caller.
+  if ($array) {
+    $object = (array) $object;
+  }
+
+  return $return;
 }
 
 /**
@@ -3515,6 +3518,7 @@ function drupal_flush_all_caches() {
 
   drupal_clear_css_cache();
   drupal_clear_js_cache();
+  system_theme_data();
   drupal_rebuild_theme_registry();
   menu_rebuild();
   node_types_rebuild();

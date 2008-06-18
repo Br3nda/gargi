@@ -514,7 +514,7 @@ function _menu_item_localize(&$item, $map, $link_translate = FALSE) {
   if (!empty($item['description'])) {
     $original_description = $item['description'];
     $item['description'] = t($item['description']);
-    if ($link_translate && $item['options']['attributes']['title'] == $original_description) {
+    if ($link_translate && isset($item['options']['attributes']['title']) && $item['options']['attributes']['title'] == $original_description) {
       $item['localized_options']['attributes']['title'] = $item['description'];
     }
   }
@@ -1257,6 +1257,9 @@ function menu_navigation_links($menu_name, $level = 0) {
       $l = $item['link']['localized_options'];
       $l['href'] = $item['link']['href'];
       $l['title'] = $item['link']['title'];
+      if ($item['link']['in_active_trail']) {
+        $l['attributes'] = array('class' => 'active-trail');
+      }
       // Keyed with unique menu id to generate classes from theme_links().
       $links['menu-'. $item['link']['mlid']] = $l;
     }
@@ -1658,7 +1661,6 @@ function menu_router_build($reset = FALSE) {
       $menu = $cache->data;
     }
     else {
-      db_query('DELETE FROM {menu_router}');
       // We need to manually call each module so that we can know which module
       // a given item came from.
       $callbacks = array();
@@ -1674,7 +1676,6 @@ function menu_router_build($reset = FALSE) {
       // Alter the menu as defined in modules, keys are like user/%user.
       drupal_alter('menu', $callbacks);
       $menu = _menu_router_build($callbacks);
-      cache_set('router:', $menu, 'cache_menu');
     }
   }
   return $menu;
@@ -2254,6 +2255,13 @@ function _menu_router_build($callbacks) {
   }
   array_multisort($sort, SORT_NUMERIC, $menu);
 
+  if (!$menu) {
+    // We must have a serious error - there is no data to save.
+    watchdog('php', 'Menu router rebuild failed - some paths may not work correctly.', array(), WATCHDOG_ERROR);
+    return array();
+  }
+  // Delete the existing router since we have some data to replace it.
+  db_query('DELETE FROM {menu_router}');
   // Apply inheritance rules.
   foreach ($menu as $path => $v) {
     $item = &$menu[$path];
@@ -2356,6 +2364,7 @@ function _menu_router_build($callbacks) {
   $masks = array_keys($masks);
   rsort($masks);
   variable_set('menu_masks', $masks);
+  cache_set('router:', $menu, 'cache_menu');
   return $menu;
 }
 

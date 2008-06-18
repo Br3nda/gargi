@@ -330,8 +330,13 @@ function _theme_process_registry(&$cache, $name, $type, $theme, $path) {
           if (function_exists($prefix .'_preprocess')) {
             $info['preprocess functions'][] = $prefix .'_preprocess';
           }
+
           if (function_exists($prefix .'_preprocess_'. $hook)) {
             $info['preprocess functions'][] = $prefix .'_preprocess_'. $hook;
+          }
+
+          if (!empty($info['original hook']) && function_exists($prefix .'_preprocess_'. $info['original hook'])) {
+            $info['preprocess functions'][] = $prefix .'_preprocess_'. $info['original hook'];
           }
         }
       }
@@ -343,6 +348,9 @@ function _theme_process_registry(&$cache, $name, $type, $theme, $path) {
       }
       elseif (isset($cache[$hook]['preprocess functions']) && is_array($cache[$hook]['preprocess functions'])) {
         $info['preprocess functions'] = array_merge($cache[$hook]['preprocess functions'], $info['preprocess functions']);
+      }
+      elseif (isset($info['original hook']) && isset($cache[$info['original hook']]['preprocess functions']) && is_array($cache[$info['original hook']]['preprocess functions'])) {
+        $info['preprocess functions'] = array_merge($cache[$info['original hook']]['preprocess functions'], $info['preprocess functions']);
       }
       $result[$hook]['preprocess functions'] = $info['preprocess functions'];
     }
@@ -725,6 +733,7 @@ function drupal_find_theme_functions($cache, $prefixes) {
             $templates[$new_hook] = array(
               'function' => $match,
               'arguments' => $info['arguments'],
+              'original hook' => $hook,
             );
           }
         }
@@ -817,6 +826,7 @@ function drupal_find_theme_templates($cache, $extension, $path) {
             'template' => $file,
             'path' => dirname($files[$match]->filename),
             'arguments' => $info['arguments'],
+            'original hook' => $hook,
           );
         }
       }
@@ -1564,7 +1574,7 @@ function theme_username($object) {
     // aggregator modules). This clause enables modules to display
     // the true author of the content.
     if (!empty($object->homepage)) {
-      $output = l($object->name, $object->homepage, array('rel' => 'nofollow'));
+      $output = l($object->name, $object->homepage, array('attributes' => array('rel' => 'nofollow')));
     }
     else {
       $output = check_plain($object->name);

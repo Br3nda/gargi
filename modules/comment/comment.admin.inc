@@ -64,7 +64,7 @@ function comment_admin_overview($type = 'new', $arg) {
   while ($comment = db_fetch_object($result)) {
     $comments[$comment->cid] = '';
     $comment->name = $comment->uid ? $comment->registered_name : $comment->name;
-    $form['subject'][$comment->cid] = array('#value' => l($comment->subject, 'node/'. $comment->nid, array('title' => truncate_utf8($comment->comment, 128), 'fragment' => 'comment-'. $comment->cid)));
+    $form['subject'][$comment->cid] = array('#value' => l($comment->subject, 'node/'. $comment->nid, array('attributes' => array('title' => truncate_utf8($comment->comment, 128)), 'fragment' => 'comment-'. $comment->cid)));
     $form['username'][$comment->cid] = array('#value' => theme('username', $comment));
     $form['node_title'][$comment->cid] = array('#value' => l($comment->node_title, 'node/'. $comment->nid));
     $form['timestamp'][$comment->cid] = array('#value' => format_date($comment->timestamp, 'small'));
@@ -277,7 +277,7 @@ function comment_confirm_delete_submit($form, &$form_state) {
  */
 function _comment_delete_thread($comment) {
   if (!is_object($comment) || !is_numeric($comment->cid)) {
-    watchdog('content', 'Cannot delete non-existent comment.', WATCHDOG_WARNING);
+    watchdog('content', 'Cannot delete non-existent comment.', array(), WATCHDOG_WARNING);
     return;
   }
 

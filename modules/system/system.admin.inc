@@ -1901,10 +1901,10 @@ function theme_admin_page($blocks) {
   $output = '<div class="admin clear-block">';
   $output .= '<div class="compact-link">';
   if (system_admin_compact_mode()) {
-    $output .= l(t('Show descriptions'), 'admin/compact/off', array('title' => t('Expand layout to include descriptions.')));
+    $output .= l(t('Show descriptions'), 'admin/compact/off', array('attributes' => array('title' => t('Expand layout to include descriptions.'))));
   }
   else {
-    $output .= l(t('Hide descriptions'), 'admin/compact/on', array('title' => t('Compress layout by hiding descriptions.')));
+    $output .= l(t('Hide descriptions'), 'admin/compact/on', array('attributes' => array('title' => t('Compress layout by hiding descriptions.'))));
   }
   $output .= '</div>';
 
@@ -2070,7 +2070,7 @@ function theme_system_modules($form) {
         $row[] = '<strong>'. drupal_render($form['name'][$key]) .'</strong>';
       }
 
-      $row[] = drupal_render($form['version'][$key]);
+      $row[] = array('data' => drupal_render($form['version'][$key]), 'class' => 'version');
       $row[] = array('data' => $description, 'class' => 'description');
       $rows[] = $row;
     }
