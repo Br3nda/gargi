@@ -238,7 +238,7 @@ function profile_generator_form_submit($form_name, $form_values) {   # {{{
         $query_result = db_query('SELECT * FROM {role} INNER JOIN {permission} ON {role}.rid = {permission}.rid WHERE {role}.rid > 2 ORDER BY {role}.rid');
         while ( $role = db_fetch_object($query_result) ) {
             $code .= "    db_query(\"INSERT INTO {role} (rid,name) VALUES (%d, '%s')\", \$rid, " . var_export($role->name,true) . ");\n";
-            $code .= "    \$rid = db_last_insert_id('{role}, 'rid');\n";
+            $code .= "    \$rid = db_last_insert_id('{role}', 'rid');\n";
             $code .= "    \$role_id[" . var_export($role->name, true) . "] = \$rid;\n";
             $code .= "    db_query(\"INSERT INTO {permission} (rid,perm) VALUES (%d, '%s')\", \$rid, " . var_export($role->perm, true) . ");\n";
         }
