@@ -295,6 +295,11 @@ function profile_generator_form_submit($form_name, $form_values) {   # {{{
             extract ($value);
             $code .= "    \n// $menu_name menu\n";
             $code .= "    db_query(\"INSERT INTO {menu_custom} (menu_name, title, description) VALUES ('$menu_name', '$title', '$description')\");\n\n";
+
+            if ($menu_name == 'navigation') {
+                continue;
+            }
+
             $code .= "    ${profile_name}_profile_install_menu_links(" . profile_generator_serialize($children) . ",0);\n";
         }
     }
