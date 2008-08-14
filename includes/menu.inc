@@ -570,8 +570,11 @@ function _menu_translate(&$router_item, $map, $to_arg = FALSE) {
   $router_item['href'] = implode('/', $link_map);
   $router_item['options'] = array();
   _menu_check_access($router_item, $map);
-
-  _menu_item_localize($router_item, $map);
+  
+  // For performance, don't localize an item the user can't access.
+  if ($router_item['access']) {
+    _menu_item_localize($router_item, $map);
+  }
 
   return $map;
 }
@@ -649,8 +652,10 @@ function _menu_link_translate(&$item) {
       }
       _menu_check_access($item, $map);
     }
-
-    _menu_item_localize($item, $map, TRUE);
+    // For performance, don't localize a link the user can't access.
+    if ($item['access']) {
+      _menu_item_localize($item, $map, TRUE);
+    }
   }
   
   // Allow other customizations - e.g. adding a page-specific query string to the
@@ -1258,7 +1263,12 @@ function menu_navigation_links($menu_name, $level = 0) {
       $l['href'] = $item['link']['href'];
       $l['title'] = $item['link']['title'];
       if ($item['link']['in_active_trail']) {
-        $l['attributes'] = array('class' => 'active-trail');
+        if (empty($l['attributes']['class'])) {
+          $l['attributes']['class'] = 'active-trail';
+        }
+        else {
+          $l['attributes']['class'] .= ' active-trail'; 
+        }
       }
       // Keyed with unique menu id to generate classes from theme_links().
       $links['menu-'. $item['link']['mlid']] = $l;
@@ -1517,10 +1527,10 @@ function menu_set_active_trail($new_trail = NULL) {
         $curr = FALSE;
       }
       else {
-        // Move to the child link if it's in the active trail.
-        if ($curr['below'] && $curr['link']['in_active_trail']) {
+        // Add the link if it's in the active trail, then move to the link below.
+        if ($curr['link']['in_active_trail']) {
           $trail[] = $curr['link'];
-          $tree = $curr['below'];
+          $tree = $curr['below'] ? $curr['below'] : array();
         }
         list($key, $curr) = each($tree);
       }

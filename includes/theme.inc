@@ -442,9 +442,7 @@ function list_themes($refresh = FALSE) {
     foreach ($themes as $theme) {
       foreach ($theme->info['stylesheets'] as $media => $stylesheets) {
         foreach ($stylesheets as $stylesheet => $path) {
-          if (file_exists($path)) {
-            $theme->stylesheets[$media][$stylesheet] = $path;
-          }
+          $theme->stylesheets[$media][$stylesheet] = $path;
         }
       }
       foreach ($theme->info['scripts'] as $script => $path) {
@@ -1009,7 +1007,7 @@ function theme_render_template($file, $variables) {
  * defaults for the template in case they are not filled in. If the default
  * implementation is a function, by convention it is named theme_HOOK().
  *
- * Each module should provide a default implementation for themes that
+ * Each module should provide a default implementation for theme_hooks that
  * it registers. This implementation may be either a function or a template;
  * if it is a function it must be specified via hook_theme(). By convention,
  * default implementations of theme hooks are named theme_HOOK. Default
@@ -1116,7 +1114,7 @@ function theme_links($links, $attributes = array('class' => 'links')) {
       if (isset($link['href']) && ($link['href'] == $_GET['q'] || ($link['href'] == '<front>' && drupal_is_front_page()))) {
         $class .= ' active';
       }
-      $output .= '<li class="'. $class .'">';
+      $output .= '<li'. drupal_attributes(array('class' => $class)) .'>';
 
       if (isset($link['href'])) {
         // Pass in $link as $options, they share the same keys.
@@ -1464,9 +1462,9 @@ function theme_more_help_link($url) {
 
 /**
  * Return code that emits an XML icon.
- * 
+ *
  * For most use cases, this function has been superseded by theme_feed_icon().
- * 
+ *
  * @see theme_feed_icon()
  * @param $url
  *   The url of the feed.
