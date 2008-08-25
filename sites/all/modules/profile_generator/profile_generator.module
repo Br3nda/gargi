@@ -492,6 +492,7 @@ function profile_generator_walk_menu($menu_name, $plid) { # {{{
         $item['children'] = profile_generator_walk_menu($item['menu_name'], $item['mlid']);
         unset($item['mlid']);
         unset($item['plid']);
+        $item['options'] = unserialize($item['options']);
         $menu[] = $item;
     }
 
