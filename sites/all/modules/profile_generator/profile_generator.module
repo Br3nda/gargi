@@ -250,7 +250,7 @@ function profile_generator_form_submit($form_name, $form_values) {   # {{{
         $code .= "/************************************************************\n";
         $code .= "*                            USERS                          *\n";
         $code .= "************************************************************/\n";
-        $query_result = db_query('SELECT * FROM {users} WHERE uid>0 ORDER BY uid');
+        $query_result = db_query('SELECT * FROM {users} WHERE uid>1 ORDER BY uid');
         while ( $user = db_fetch_object($query_result) ) {
             $pass = $user->pass;
             unset($user->uid);
