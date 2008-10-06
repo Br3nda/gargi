@@ -411,15 +411,11 @@ function profile_generator_export_views() { # {{{
         $output .= "*                       EXPORTING VIEWS                     *\n";
         $output .= "************************************************************/\n";
 
-        $query_result = db_query('SELECT vid FROM {view_view}');
+        $query_result = db_query('SELECT vid FROM {views_view}');
 
         while ($view=db_fetch_object($query_result)) {
-                $output .= profile_generator_generate_inserts('view_view', db_query("SELECT * FROM {view_view} WHERE vid=%d", $view->vid));
-                $output .= profile_generator_generate_inserts('view_sort', db_query("SELECT {view_sort}.* FROM {view_sort} WHERE {view_sort}.vid=%d", $view->vid));
-                $output .= profile_generator_generate_inserts('view_argument', db_query("SELECT {view_argument}.* FROM {view_argument} WHERE {view_argument}.vid=%d", $view->vid));
-                $output .= profile_generator_generate_inserts('view_tablefield', db_query("SELECT {view_tablefield}.* FROM {view_tablefield} WHERE {view_tablefield}.vid=%d", $view->vid));
-                $output .= profile_generator_generate_inserts('view_filter', db_query("SELECT {view_filter}.* FROM {view_filter} WHERE {view_filter}.vid=%d", $view->vid));
-                $output .= profile_generator_generate_inserts('view_exposed_filter', db_query("SELECT {view_exposed_filter}.* FROM {view_exposed_filter} WHERE {view_exposed_filter}.vid=%d", $view->vid));
+                $output .= profile_generator_generate_inserts('views_view', db_query("SELECT * FROM {views_view} WHERE vid=%d", $view->vid));
+                $output .= profile_generator_generate_inserts('views_display', db_query("SELECT {views_display}.* FROM {views_display} WHERE {views_display}.vid=%d", $view->vid));
         }
 
         return $output;
