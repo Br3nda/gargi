@@ -224,6 +224,11 @@ function profile_generator_form_submit($form_name, $form_values) {   # {{{
         if ( $form_values['values']['export_nodetypes'] ) {
             $code .= profile_generator_generate_inserts('vocabulary_node_types', db_query('SELECT * FROM {vocabulary_node_types}'));
         }
+
+        $code .= "\n";
+        $code .= "    db_query('SELECT SETVAL(\\'term_data_tid_seq\\', (SELECT MAX(tid) FROM {term_data}))');\n";
+        $code .= "    db_query('SELECT SETVAL(\\'vocabulary_vid_seq\\', (SELECT MAX(vid) FROM {vocabulary}))');\n";
+        $code .= "\n\n";
     }
 
     // roles
@@ -401,7 +406,6 @@ function profile_generator_export_nodes_save($form_values) { # {{{
     $output .= "\n";
     $output .= "    db_query('SELECT SETVAL(\\'node_nid_seq\\', (SELECT MAX(nid) FROM {node}))');\n";
     $output .= "    db_query('SELECT SETVAL(\\'node_revisions_vid_seq\\', (SELECT MAX(vid) FROM {node_revisions}))');\n";
-    $output .= "    db_query('SELECT SETVAL(\\'term_data_tid_seq\\', (SELECT MAX(tid) FROM {term_data}))');\n";
     return $output;
 } # }}}
 
