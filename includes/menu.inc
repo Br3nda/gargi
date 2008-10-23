@@ -1265,19 +1265,15 @@ function menu_navigation_links($menu_name, $level = 0) {
   $links = array();
   foreach ($tree as $item) {
     if (!$item['link']['hidden']) {
+      $class = '';
       $l = $item['link']['localized_options'];
       $l['href'] = $item['link']['href'];
       $l['title'] = $item['link']['title'];
       if ($item['link']['in_active_trail']) {
-        if (empty($l['attributes']['class'])) {
-          $l['attributes']['class'] = 'active-trail';
-        }
-        else {
-          $l['attributes']['class'] .= ' active-trail'; 
-        }
+        $class = ' active-trail';
       }
-      // Keyed with unique menu id to generate classes from theme_links().
-      $links['menu-'. $item['link']['mlid']] = $l;
+      // Keyed with the unique mlid to generate classes in theme_links().
+      $links['menu-'. $item['link']['mlid'] . $class] = $l;
     }
   }
   return $links;
@@ -2424,7 +2420,7 @@ function _menu_site_is_offline() {
       // page redirects], and specifically suppress its display on the site
       // maintenance page.
       if (drupal_get_normal_path($_GET['q']) != 'admin/settings/site-maintenance') {
-        drupal_set_message(t('Operating in off-line mode.'), 'status', FALSE);
+        drupal_set_message(l(t('Operating in off-line mode.'), 'admin/settings/site-maintenance'), 'status', FALSE);
       }
     }
     else {
