@@ -356,6 +356,10 @@ function profile_generator_form_submit($form_name, $form_values) {   # {{{
         $code .= "\n";
     }
 
+    if($form_values['values']['export_views']) {
+        $code .= profile_generator_export_views($form_values['values']);
+    }
+
     $code .= profile_generator_export_nodes_save($form_values['values']);
     $code .= "\n$postcode\n";
     $code .= "    return;\n";
@@ -371,9 +375,6 @@ function profile_generator_form_submit($form_name, $form_values) {   # {{{
         $code .= "    }\n";
         $code .= "}\n\n";
     }
-	if($form_values['values']['export_views']) {
-		$code .= profile_generator_export_views($form_values['values']);
-	}
     $code .= "?>\n";
 
     if ( $form_values['values']['op'] == t('Download') ) {
@@ -422,6 +423,7 @@ function profile_generator_export_views() { # {{{
                 $output .= profile_generator_generate_inserts('views_view', db_query("SELECT * FROM {views_view} WHERE vid=%d", $view->vid));
                 $output .= profile_generator_generate_inserts('views_display', db_query("SELECT {views_display}.* FROM {views_display} WHERE {views_display}.vid=%d", $view->vid));
         }
+        $output .= "\n";
 
         return $output;
     }
