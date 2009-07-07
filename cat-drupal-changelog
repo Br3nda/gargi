@@ -1,0 +1,12 @@
+2009-07-07 - Initial creation of cat-drupal
+  Added:
+    * modules/catalyst
+      * wysiwyg module 6.x-2.0 http://drupal.org/project/wysiwyg
+    * sites/all/libraries
+      * tinymce 3.2.5 http://tinymce.moxiecode.com/
+    * profiles
+      * catalyst - Standard Drupal install with Admin menu module enabled
+      * catalyst_ui - Built on top of catalyst profile. + image, cck and views modules.
+    * scripts
+      * crondispatcher.sh - Drupal specific version of crondispatcher is used by Acquia branch of dh-make-drupal
+Added by: Josh Waihi josh@catalyst.net.nz
