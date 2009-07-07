@@ -2,6 +2,8 @@
   Added:
     * modules/catalyst
       * wysiwyg module 6.x-2.0 http://drupal.org/project/wysiwyg
+      * vertical tabs module 6.x-1.0-beta3 http://drupal.org/project/vertical_tabs
+      * admin module 6.x-1.0-beta1 http://drupal.org/project/admin
     * sites/all/libraries
       * tinymce 3.2.5 http://tinymce.moxiecode.com/
     * profiles
