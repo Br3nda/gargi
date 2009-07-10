@@ -12,11 +12,11 @@ function catalyst_ui_profile_modules() {
     // Core Drupal modules.
     'comment', 'help', 'menu', 'taxonomy', 'dblog', 'path', 'upload',
     // Contributed modules
-    'admin_menu', 'advanced_help', 
+    'admin_menu', 'advanced_help', 'admin', 'vertical_tabs', 
       // Views
       'views', 'views_ui', 
       // Image
-      'image', 'imageapi', 'imagecache', 'img_assist',
+      'image', 'imageapi', 'imagecache', 'imagecache_ui', 'img_assist',
       // CCK
       'content', 'text', 'filefield', 'imagefield', 
   );
