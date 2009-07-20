@@ -873,6 +873,9 @@ function wysiwyg_get_libraries() {
 
   // Always search sites/all/*.
   $searchdir[] = 'sites/all/' . $directory;
+  
+  // Search for directory in root of installation.
+  $searchdir[] = $directory;
 
   // Also search sites/<domain>/*.
   if (file_exists("$config/$directory")) {
