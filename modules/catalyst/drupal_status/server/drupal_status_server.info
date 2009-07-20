@@ -1,5 +1,0 @@
-name = Drupal Status Server
-description = Provides aggregated drupal status information
-core = 6.x
-package = Catalyst
-version = 6.x-dev 
