@@ -868,6 +868,9 @@ function wysiwyg_get_libraries() {
     $searchdir[] = "profiles/$profile/$directory";
   }
 
+  // Search in the root for default distribution
+  $searchdir[] = $directory;
+
   // Always search sites/all/*.
   $searchdir[] = 'sites/all/' . $directory;
   
