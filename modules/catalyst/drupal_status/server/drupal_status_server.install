@@ -1,0 +1,31 @@
+<?php
+
+require_once 'drupal_status_server.module';
+
+function drupal_status_server_install(){
+  // create tagging vocabulary
+  $vid = drupal_status_server_get_vid();
+  // create user
+  $user = drupal_status_server_get_user();
+  // note: report node type is created via hook_node_info
+}
+
+/**
+ * cleanup
+ */
+function drupal_status_server_uninstall(){
+  // del vocab
+  $vid = drupal_status_server_get_vid();
+  taxonomy_del_vocabulary($vid);
+  variable_del(DRUPAL_STATUS_CATEGORY_DEFAULT_VID);
+  variable_del(DRUPAL_STATUS_CATEGORY_NAME);
+  drupal_set_message('Deleted Drupal Status vocabulary');
+  // del user
+  $user = drupal_status_server_get_user();
+  user_delete(array(), $user->uid);
+  variable_del(DRUPAL_STATUS_CATEGORY_DEFAULT_UID);
+  drupal_set_message('Deleted Drupal Status user');
+  // del node type
+  node_type_delete('status_report');
+  drupal_set_message('Deleted Drupal Status Report content type');
+}
