@@ -1,0 +1,4 @@
+<div id="first-time"><h1 class="title">Welcome to your new Acquia Drupal website!</h1>
+<p>You know how make Drupal sites. You don't need some silly message here you always ignore.</p>
+</div>
+<!--break-->

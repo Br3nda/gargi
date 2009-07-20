@@ -1,0 +1,5 @@
+name = Drupal Status
+description = Collects drupal status information and emails reports via cron
+core = 6.x
+package = Catalyst
+version = 6.x-dev
