@@ -298,7 +298,7 @@ function drupal_status_server_save_nodes($emails){
   foreach($nodes as $node){
     
     // check if exists, delete old one
-    $result = db_query("SELECT nid FROM {node} WHERE type = '%s' AND title='%s'", 'status_report', $node->title);
+    $result = db_query("SELECT nid FROM {node} WHERE type = '%s' AND title = '%s'", 'status_report', $node->title);
     while( $row = db_fetch_object($result) ){
       node_delete($row->nid);
     }
