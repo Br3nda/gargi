@@ -74,7 +74,7 @@ function drupal_status_init(){
   $last_run = variable_get('ds_last_run', 0);
   $next_run = $last_run + variable_get('ds_phonehome_frequency', 86400);
   // refresh each status cron run
-  if( ! $server OR $next_run < $server['timestamp'] ){
+  if( (! $server) OR ($next_run < $server['timestamp']) AND isset($_SERVER['SERVER_NAME']) ){
     // add $_SERVER vars for reporting from command line cron
     $server = array(
       'timestamp' => time(),
