@@ -226,3 +226,6 @@ ini_set('url_rewriter.tags',        '');
 #   'forum'      => 'Discussion board',
 #   '@count min' => '@count minutes',
 # );
+
+// Include config that is common to dev and prod (Catalyst thing)
+require 'settings.common.php';
