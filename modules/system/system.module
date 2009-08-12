@@ -1240,6 +1240,9 @@ function system_cron() {
   foreach ($cache_tables as $table) {
     cache_clear_all(NULL, $table);
   }
+
+  // Clean up expired sessions (for systems that have automatic session garbage collection off in php.ini)
+  sess_gc(ini_get('session.gc_maxlifetime'));
 }
 
 /**
