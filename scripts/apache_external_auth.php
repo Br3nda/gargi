@@ -27,7 +27,7 @@ $user = trim($user);
 $pass = trim($pass);
 
 // bootstrap Drupal
-if (!file_exists('./includes')) chdir('..');
+if (!file_exists('./includes')) chdir(dirname(dirname(__FILE)));
 include_once './includes/bootstrap.inc';
 drupal_bootstrap(DRUPAL_BOOTSTRAP_DATABASE);
 
