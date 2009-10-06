@@ -1110,7 +1110,7 @@ function format_xml_elements($array) {
           $output .= drupal_attributes($value['attributes']);
         }
 
-        if ($value['value'] != '') {
+        if (isset($value['value']) && $value['value'] != '') {
           $output .= '>'. (is_array($value['value']) ? format_xml_elements($value['value']) : check_plain($value['value'])) .'</'. $value['key'] .">\n";
         }
         else {
@@ -2662,7 +2662,7 @@ function page_set_cache() {
 function drupal_cron_run() {
   // Try to allocate enough time to run all the hook_cron implementations.
   if (function_exists('set_time_limit')) {
-    @set_time_limit($time_limit);
+    @set_time_limit(240);
   }
 
   // Fetch the cron semaphore
