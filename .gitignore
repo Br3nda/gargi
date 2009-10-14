@@ -1,0 +1,9 @@
+*~
+*.swp
+.settings
+.project
+.workspace
+.buildpath
+sites/default/settings.php
+sites/default/files
+backup
