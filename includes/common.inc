@@ -25,6 +25,13 @@ define('SAVED_UPDATED', 2);
 define('SAVED_DELETED', 3);
 
 /**
+ * Create E_DEPRECATED constant for older PHP versions (<5.3).
+ */
+if (!defined('E_DEPRECATED')) {
+  define('E_DEPRECATED', 8192);
+}
+
+/**
  * Set content for a specified region.
  *
  * @param $region
@@ -433,11 +440,13 @@ function drupal_http_request($url, $headers = array(), $method = 'GET', $data = 
 
   if ($uri == FALSE) {
     $result->error = 'unable to parse URL';
+    $result->code = -1001;
     return $result;
   }
 
   if (!isset($uri['scheme'])) {
     $result->error = 'missing schema';
+    $result->code = -1002;
     return $result;
   }
 
@@ -455,6 +464,7 @@ function drupal_http_request($url, $headers = array(), $method = 'GET', $data = 
       break;
     default:
       $result->error = 'invalid schema '. $uri['scheme'];
+      $result->code = -1003;
       return $result;
   }
 
@@ -607,7 +617,7 @@ function drupal_error_handler($errno, $message, $filename, $line, $context) {
     return;
   }
 
-  if ($errno & (E_ALL)) {
+  if ($errno & (E_ALL ^ E_DEPRECATED)) {
     $types = array(1 => 'error', 2 => 'warning', 4 => 'parse error', 8 => 'notice', 16 => 'core error', 32 => 'core warning', 64 => 'compile error', 128 => 'compile warning', 256 => 'user error', 512 => 'user warning', 1024 => 'user notice', 2048 => 'strict warning', 4096 => 'recoverable fatal error');
 
     // For database errors, we want the line number/file name of the place that
@@ -1100,7 +1110,7 @@ function format_xml_elements($array) {
           $output .= drupal_attributes($value['attributes']);
         }
 
-        if ($value['value'] != '') {
+        if (isset($value['value']) && $value['value'] != '') {
           $output .= '>'. (is_array($value['value']) ? format_xml_elements($value['value']) : check_plain($value['value'])) .'</'. $value['key'] .">\n";
         }
         else {
@@ -2652,7 +2662,7 @@ function page_set_cache() {
 function drupal_cron_run() {
   // Try to allocate enough time to run all the hook_cron implementations.
   if (function_exists('set_time_limit')) {
-    @set_time_limit($time_limit);
+    @set_time_limit(240);
   }
 
   // Fetch the cron semaphore
