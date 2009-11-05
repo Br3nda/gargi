@@ -19,6 +19,8 @@ function catalyst_ui_profile_modules() {
       'image', 'imageapi', 'imagecache', 'imagecache_ui', 'img_assist',
       // CCK
       'content', 'text', 'filefield', 'imagefield', 
+      // Catalyst tracking
+      'drupal_status',
   );
 
   return $modules;
