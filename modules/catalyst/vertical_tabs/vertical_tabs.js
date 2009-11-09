@@ -1,3 +1,5 @@
+// $Id: vertical_tabs.js,v 1.3.2.15 2009/11/06 23:15:25 davereid Exp $
+
 Drupal.verticalTabs = Drupal.verticalTabs || {};
 
 Drupal.behaviors.verticalTabs = function() {
@@ -47,7 +49,7 @@ Drupal.behaviors.verticalTabs = function() {
       $('.vertical-tabs-' + k).remove();
     });
 
-    $('div.vertical-tabs').html(ul).append(panes);
+    $('div.vertical-tabs').html(ul).append(panes).show();
 
     // Activate the first tab.
     $('fieldset.vertical-tabs-pane').hide();
