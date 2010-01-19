@@ -16,7 +16,7 @@ function catalyst_ui_profile_modules() {
       // Views
       'views', 'views_ui', 
       // Image
-      'image', 'imageapi', 'imagecache', 'imagecache_ui', 'img_assist',
+      'image', 'imageapi', 'imagecache', 'imagecache_ui', 'img_assist', 'imageapi_gd',
       // CCK
       'content', 'text', 'filefield', 'imagefield', 
       // Catalyst tracking
