@@ -958,7 +958,9 @@ function _node_save_revision(&$node, $uid, $update = NULL) {
  */
 function node_delete($nid) {
 
-  $node = node_load($nid);
+  // Clear the cache before the load, so if multiple nodes are deleted, the
+  // memory will not fill up with nodes (possibly) already removed.
+  $node = node_load($nid, NULL, TRUE);
 
   if (node_access('delete', $node)) {
     db_query('DELETE FROM {node} WHERE nid = %d', $node->nid);
@@ -2320,7 +2322,7 @@ function node_access_rebuild($batch_mode = FALSE) {
     else {
       // Try to allocate enough time to rebuild node grants
       if (function_exists('set_time_limit')) {
-        @set_time_limit($time_limit);
+        @set_time_limit(240);
       }
       $result = db_query("SELECT nid FROM {node}");
       while ($node = db_fetch_object($result)) {
