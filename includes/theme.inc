@@ -1274,7 +1274,7 @@ function theme_submenu($links) {
  *   - Any HTML attributes, such as "colspan", to apply to the table cell.
  *
  *   Here's an example for $rows:
- *   @verbatim
+ *   @code
  *   $rows = array(
  *     // Simple row
  *     array(
@@ -1285,7 +1285,7 @@ function theme_submenu($links) {
  *       'data' => array('Cell 1', array('data' => 'Cell 2', 'colspan' => 2)), 'class' => 'funky'
  *     )
  *   );
- *   @endverbatim
+ *   @endcode
  *
  * @param $attributes
  *   An array of HTML attributes to apply to the table tag.
@@ -1313,7 +1313,7 @@ function theme_table($header, $rows, $attributes = array(), $caption = NULL) {
   // Format the table header:
   if (count($header)) {
     $ts = tablesort_init($header);
-    // HTML requires that the thead tag has tr tags in it follwed by tbody
+    // HTML requires that the thead tag has tr tags in it followed by tbody
     // tags. Using ternary operator to check and see if we have any rows.
     $output .= (count($rows) ? ' <thead><tr>' : ' <tr>');
     foreach ($header as $cell) {
