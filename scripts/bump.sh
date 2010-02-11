@@ -9,7 +9,7 @@
  # Die on error
  set -e
 
- if test "$2" -o ! "$1"
+ if [ $2 ]
  then
    echo -e "Usage: bump.sh [<version>]\nNote that the version number is normally calculated automatically"
    exit 1;
@@ -48,11 +48,7 @@
    done
  fi
 
- if dch -v $VERSION
- then
-   echo "Cacelling bump due to no changelog entry"
-   exit 1
- fi
+ dch -v $VERSION
  CHANGELOGMSG=`dpkg-parsechangelog --count 1 | grep -A 20 Changes | tail -n +4`
  git add debian/changelog
  COMMITMSG=`echo -e "Automatic release bump to $VERSION:\n\n$CHANGELOGMSG"`
