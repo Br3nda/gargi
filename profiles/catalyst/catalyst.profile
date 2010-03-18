@@ -14,7 +14,7 @@ function catalyst_profile_modules() {
     // Contributed modules
     'admin_menu',
     // Catalyst tracking
-    'drupal_status',
+    'drupal_status', 'catalyst_status',
   );
 
   return $modules;

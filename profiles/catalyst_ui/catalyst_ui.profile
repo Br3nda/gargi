@@ -20,7 +20,7 @@ function catalyst_ui_profile_modules() {
       // CCK
       'content', 'text', 'filefield', 'imagefield', 
       // Catalyst tracking
-      'drupal_status',
+      'drupal_status', 'catalyst_status',
   );
 
   return $modules;
