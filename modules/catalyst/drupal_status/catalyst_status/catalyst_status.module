@@ -1,0 +1,24 @@
+<?php 
+
+/**
+ * Implementation of hook_drupal_status_data
+ */
+function catalyst_status_drupal_status_data () {
+  $data = array();
+  // Look for any catalyst users in the database. They will become associated with this site.
+  $rs = db_query("SELECT name, mail FROM {users} WHERE mail like '%@catalyst.net.nz'");
+  $users = array();
+  while ($row = db_fetch_object($rs)) {
+    // In dev sites (sometimes prod) develoeprs will use email
+    // aliases so they can test Drupal with different accounts.
+    // If a email address has a '+' in it then the users email
+    // username is everything before the '+'.
+    $mail = preg_replace('/\+(.*)@/U', '@', $row->mail);
+    if (($mail == $row->mail) || !isset($users[$mail])) {
+      $users[$mail] = $row->name;
+    }
+  }
+
+  $data['catalyst']['users'] = $users;
+  return $data;
+}

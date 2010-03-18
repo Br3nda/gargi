@@ -1,0 +1,6 @@
+name = Catalyst Status
+description = Adds Catalyst specific data to the drupal_status update.
+package = Catalyst
+dependencies[] = drupal_status
+core = 6.x
+version = 6.x-1.x
