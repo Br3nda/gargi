@@ -69,6 +69,7 @@ function db_connect($url) {
   if (isset($url['port'])) {
     $conn_string .= ' port='. urldecode($url['port']);
   }
+  $conn_string .= ' sslmode=disable';
 
   // pg_last_error() does not return a useful error message for database
   // connection errors. We must turn on error tracking to get at a good error
