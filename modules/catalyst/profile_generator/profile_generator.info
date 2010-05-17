@@ -1,0 +1,5 @@
+name = Installation Profile Generator
+description = "Takes the current installation of Drupal, and creates an Installation Profile based on it"
+package = ""
+version = 6.x-dev
+core = 6.x

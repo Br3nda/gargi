@@ -1,5 +1,5 @@
 <?php
-// $Id: whizzywig.inc,v 1.3.2.1 2010/02/06 17:33:58 sun Exp $
+// $Id: whizzywig.inc,v 1.3 2009/06/09 00:18:12 sun Exp $
 
 /**
  * @file
@@ -26,9 +26,6 @@ function wysiwyg_whizzywig_editor() {
     'versions' => array(
       '55' => array(
         'js files' => array('whizzywig.js'),
-      ),
-      '56' => array(
-        'js files' => array('whizzywig-56.js'),
       ),
     ),
   );
@@ -75,9 +72,6 @@ function wysiwyg_whizzywig_settings($editor, $config, $theme) {
   // Add path to button images, if available.
   if (is_dir($editor['library path'] . '/btn')) {
     $settings['buttonPath'] = base_path() . $editor['library path'] . '/btn/';
-  }
-  if (file_exists($editor['library path'] . '/WhizzywigToolbar.png')) {
-    $settings['toolbarImagePath'] = base_path() . $editor['library path'] . '/WhizzywigToolbar.png';
   }
 
   // Add configured buttons or all available.

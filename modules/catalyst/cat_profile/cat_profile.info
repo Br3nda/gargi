@@ -1,0 +1,5 @@
+name = "Catalyst Site Profile"
+description = "Provides a library of helpful functions for building a site profile on top of"
+package = "catalyst"
+version = 6.x-1.0
+core = 6.x

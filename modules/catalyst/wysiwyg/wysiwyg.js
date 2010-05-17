@@ -1,5 +1,4 @@
-// $Id: wysiwyg.js,v 1.15.2.2 2010/02/13 23:58:41 sun Exp $
-(function($) {
+// $Id: wysiwyg.js,v 1.15 2009/06/07 23:07:22 sun Exp $
 
 /**
  * Initialize editor libraries.
@@ -46,7 +45,7 @@ Drupal.behaviors.attachWysiwyg = function(context) {
 
   $('.wysiwyg:not(.wysiwyg-processed)', context).each(function() {
     var params = Drupal.wysiwyg.getParams(this);
-    var $this = $(this).addClass('wysiwyg-processed');
+    var $this = $(this);
     // Directly attach this editor, if the input format is enabled or there is
     // only one input format at all.
     if (($this.is(':input') && $this.is(':checked')) || $this.is('div')) {
@@ -66,10 +65,7 @@ Drupal.behaviors.attachWysiwyg = function(context) {
         });
       }
     }
-    // Detach any editor when the containing form is submitted.
-    $('#' + params.field).parents('form').submit(function () {
-      Drupal.wysiwygDetach(context, params);
-    });
+    $this.addClass('wysiwyg-processed');
   });
 };
 
@@ -216,4 +212,3 @@ Drupal.wysiwyg.getParams = function(element, params) {
  */
 Drupal.wysiwygInit();
 
-})(jQuery);

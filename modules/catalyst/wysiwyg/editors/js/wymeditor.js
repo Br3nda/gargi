@@ -1,18 +1,11 @@
-// $Id: wymeditor.js,v 1.2.2.2 2010/02/13 23:58:41 sun Exp $
-(function($) {
+// $Id: wymeditor.js,v 1.2 2009/06/06 02:18:36 sun Exp $
 
 /**
  * Attach this editor to a target element.
  */
-Drupal.wysiwyg.editor.attach.wymeditor = function (context, params, settings) {
+Drupal.wysiwyg.editor.attach.wymeditor = function(context, params, settings) {
   // Prepend basePath to wymPath.
   settings.wymPath = settings.basePath + settings.wymPath;
-  // Update activeId on focus.
-  settings.postInit = function (instance) {
-    $(instance._doc).focus(function () {
-      Drupal.wysiwyg.activeId = params.field;
-    });
-  };
   // Attach editor.
   $('#' + params.field).wymeditor(settings);
 };
@@ -20,7 +13,7 @@ Drupal.wysiwyg.editor.attach.wymeditor = function (context, params, settings) {
 /**
  * Detach a single or all editors.
  */
-Drupal.wysiwyg.editor.detach.wymeditor = function (context, params) {
+Drupal.wysiwyg.editor.detach.wymeditor = function(context, params) {
   if (typeof params != 'undefined') {
     var $field = $('#' + params.field);
     var index = $field.data(WYMeditor.WYM_INDEX);
@@ -34,7 +27,7 @@ Drupal.wysiwyg.editor.detach.wymeditor = function (context, params) {
     $field.show();
   }
   else {
-    jQuery.each(WYMeditor.INSTANCES, function () {
+    jQuery.each(WYMeditor.INSTANCES, function() {
       this.update();
       $(this._box).remove();
       $(this._element).show();
@@ -43,15 +36,3 @@ Drupal.wysiwyg.editor.detach.wymeditor = function (context, params) {
   }
 };
 
-Drupal.wysiwyg.editor.instance.wymeditor = {
-  insert: function (content) {
-    var $field = $('#' + this.field);
-    var index = $field.data(WYMeditor.WYM_INDEX);
-    if (typeof index != 'undefined') {
-      var instance = WYMeditor.INSTANCES[index];
-      instance.insert(content);
-    }
-  }
-};
-
-})(jQuery);

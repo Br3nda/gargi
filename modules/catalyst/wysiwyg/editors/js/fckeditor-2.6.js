@@ -1,5 +1,4 @@
-// $Id: fckeditor-2.6.js,v 1.16.2.3 2010/02/13 23:58:41 sun Exp $
-(function($) {
+// $Id: fckeditor-2.6.js,v 1.16 2009/06/04 00:53:10 sun Exp $
 
 /**
  * Attach this editor to a target element.
@@ -35,19 +34,11 @@ Drupal.wysiwyg.editor.detach.fckeditor = function(context, params) {
   }
 
   for (var instanceName in instances) {
-    var instance = instances[instanceName];
-    instance.UpdateLinkedField();
-    // Since we already detach the editor and update the textarea, the submit
-    // event handler needs to be removed to prevent data loss (in IE).
-    // FCKeditor uses 2 nested iFrames; instance.EditingArea.Window is the
-    // deepest. Its parent is the iFrame containing the editor.
-    var instanceScope = instance.EditingArea.Window.parent;
-    instanceScope.FCKTools.RemoveEventListener(instance.GetParentForm(), 'submit', instance.UpdateLinkedField); 
-    // Remove the editor instance.
+    instances[instanceName].UpdateLinkedField();
     $('#' + instanceName + '___Config').remove();
     $('#' + instanceName + '___Frame').remove();
     $('#' + instanceName).show();
-    delete instance;
+    delete instances[instanceName];
   }
 };
 
@@ -79,10 +70,10 @@ Drupal.wysiwyg.editor.instance.fckeditor = {
       return instance.FCKDataProcessor.prototype.ConvertToHtml.call(this, data);
     };
     // Detach: Convert HTML into text.
-    wysiwygDataProcessor.prototype.ConvertToDataFormat = function(rootNode, excludeRoot, ignoreIfEmptyParagraph, format) {
+    wysiwygDataProcessor.prototype.ConvertToDataFormat = function(rootNode, excludeRoot) {
       // Called from GetData(), convert the content's DOM into a XHTML string
       // using the original data processor and detach Drupal plugins.
-      var data = instance.FCKDataProcessor.prototype.ConvertToDataFormat.call(this, rootNode, excludeRoot, ignoreIfEmptyParagraph, format);
+      var data = instance.FCKDataProcessor.prototype.ConvertToDataFormat.call(this, rootNode, excludeRoot);
       for (var plugin in Drupal.settings.wysiwyg.plugins[instance.wysiwygFormat].drupal) {
         if (typeof Drupal.wysiwyg.plugins[plugin].detach == 'function') {
           data = Drupal.wysiwyg.plugins[plugin].detach(data, Drupal.settings.wysiwyg.plugins.drupal[plugin], instance.FCK.Name);
@@ -163,4 +154,3 @@ Drupal.wysiwyg.editor.instance.fckeditor = {
   }
 };
 
-})(jQuery);

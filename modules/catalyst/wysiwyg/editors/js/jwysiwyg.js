@@ -1,5 +1,4 @@
-// $Id: jwysiwyg.js,v 1.3.4.1 2010/02/13 23:58:41 sun Exp $
-(function($) {
+// $Id: jwysiwyg.js,v 1.3 2008/12/01 14:14:41 sun Exp $
 
 /**
  * Attach this editor to a target element.
@@ -23,4 +22,3 @@ Drupal.wysiwyg.editor.detach.jwysiwyg = function(context, params) {
   $field.show();
 };
 
-})(jQuery);

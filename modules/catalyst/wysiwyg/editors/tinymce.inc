@@ -1,5 +1,5 @@
 <?php
-// $Id: tinymce.inc,v 1.35.2.3 2010/02/10 21:16:50 twod Exp $
+// $Id: tinymce.inc,v 1.35 2009/06/09 00:18:12 sun Exp $
 
 /**
  * @file
@@ -45,7 +45,6 @@ function wysiwyg_tinymce_editor() {
         'css files' => array('tinymce-2.css'),
         'download url' => 'http://sourceforge.net/project/showfiles.php?group_id=103281&package_id=111430&release_id=557383',
       ),
-      // @todo Starting from 3.3, tiny_mce.js may support JS aggregation.
       '3.1' => array(
         'js files' => array('tinymce-3.js'),
         'css files' => array('tinymce-3.css'),
@@ -83,8 +82,8 @@ function wysiwyg_tinymce_editor() {
 function wysiwyg_tinymce_version($editor) {
   $script = $editor['library path'] . '/tiny_mce.js';
   $script = fopen($script, 'r');
-  // Version is contained in the first 100 chars.
-  $line = fgets($script, 100);
+  // Version is contained in the first 80 chars.
+  $line = fgets($script, 80);
   // 2.x: this.majorVersion="2";this.minorVersion="1.3"
   // 3.x: majorVersion:'3',minorVersion:'2.0.1'
   if (preg_match('@majorVersion[=:]["\'](\d).+?minorVersion[=:]["\']([\d\.]+)@', $line, $version)) {
@@ -368,7 +367,7 @@ function _wysiwyg_tinymce_plugin_name($op, $name) {
 }
 
 /**
- * Return internal plugins for this editor; semi-implementation of hook_wysiwyg_plugin().
+ * Return internal plugins for TinyMCE; semi-implementation of hook_wysiwyg_plugin().
  */
 function wysiwyg_tinymce_plugins($editor) {
   $plugins = array(
@@ -385,7 +384,7 @@ function wysiwyg_tinymce_plugins($editor) {
         'image' => t('Image'),
         'cleanup' => t('Clean-up'),
         'forecolor' => t('Forecolor'), 'backcolor' => t('Backcolor'),
-        'sup' => t('Superscript'), 'sub' => t('Subscript'),
+        'sup' => t('Sup'), 'sub' => t('Sub'),
         'blockquote' => t('Blockquote'), 'code' => t('Source code'),
         'hr' => t('Horizontal rule'),
         'cut' => t('Cut'), 'copy' => t('Copy'), 'paste' => t('Paste'),
@@ -553,7 +552,7 @@ function wysiwyg_tinymce_plugins($editor) {
     );
     $plugins['xhtmlxtras'] = array(
       'path' => $editor['library path'] . '/plugins/xhtmlxtras',
-      'buttons' => array('cite' => t('Citation'), 'del' => t('Deleted'), 'abbr' => t('Abbreviation'), 'acronym' => t('Acronym'), 'ins' => t('Inserted'), 'attribs' => t('HTML attributes')),
+      'buttons' => array('cite' => t('Citation'), 'del' => t('Deleted'), 'abbr' => t('Abbreviation'), 'acronym' => t('Acronym'), 'ins' => t('Inserted')),
       'url' => 'http://wiki.moxiecode.com/index.php/TinyMCE:Plugins/xhtmlxtras',
       'internal' => TRUE,
       'load' => TRUE,
@@ -567,21 +566,10 @@ function wysiwyg_tinymce_plugins($editor) {
       'internal' => TRUE,
       'load' => TRUE,
     );
-    if (version_compare($editor['installed version'], '3.3', '<')) {
-      $plugins['safari'] = array(
-        'path' => $editor['library path'] . '/plugins/safari',
-        'extensions' => array('safari' => t('Safari compatibility')),
-        'url' => 'http://wiki.moxiecode.com/index.php/TinyMCE:Plugins/safari',
-        'internal' => TRUE,
-        'load' => TRUE,
-      );
-    }
-  }
-  if (version_compare($editor['installed version'], '3.3', '>=')) {
-    $plugins['advlist'] = array(
-      'path' => $editor['library path'] . '/plugins/advlist',
-      'extensions' => array('advlist' => t('Advanced list')),
-      'url' => 'http://wiki.moxiecode.com/index.php/TinyMCE:Plugins/advlist',
+    $plugins['safari'] = array(
+      'path' => $editor['library path'] . '/plugins/safari',
+      'extensions' => array('safari' => t('Safari compatibility')),
+      'url' => 'http://wiki.moxiecode.com/index.php/TinyMCE:Plugins/safari',
       'internal' => TRUE,
       'load' => TRUE,
     );

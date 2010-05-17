@@ -1,5 +1,4 @@
-// $Id: tinymce-3.js,v 1.17.2.2 2010/02/13 23:58:41 sun Exp $
-(function($) {
+// $Id: tinymce-3.js,v 1.16 2009/05/15 15:06:06 sun Exp $
 
 /**
  * Initialize editor instances.
@@ -16,18 +15,15 @@ Drupal.wysiwyg.editor.init.tinymce = function(settings) {
   if (tinymce.query == 'q') {
     tinymce.query = '';
   }
-  // If JS compression is enabled, TinyMCE is unable to autodetect its global
-  // settinge, hence we need to define them manually.
+  // If JS compression is enabled, TinyMCE is unable to find its own base path
+  // and exec mode, hence we need to define it manually.
   // @todo Move global library settings somewhere else.
-  tinyMCE.baseURL = settings.global.editorBasePath;
-  tinyMCE.srcMode = (settings.global.execMode == 'src' ? '_src' : '');
-  tinyMCE.gzipMode = (settings.global.execMode == 'gzip');
+  tinyMCE.baseURL = Drupal.settings.wysiwyg.editorBasePath;
+  tinyMCE.srcMode = (Drupal.settings.wysiwyg.execMode == 'src' ? '_src' : '');
+  tinyMCE.gzipMode = (Drupal.settings.wysiwyg.execMode == 'gzip');
 
   // Initialize editor configurations.
   for (var format in settings) {
-    if (format == 'global') {
-      continue;
-    };
     tinyMCE.init(settings[format]);
     if (Drupal.settings.wysiwyg.plugins[format]) {
       // Load native external plugins.
@@ -189,22 +185,16 @@ Drupal.wysiwyg.editor.instance.tinymce = {
       img: { 'class': 'mceItem' }
     };
     var $content = $('<div>' + content + '</div>'); // No .outerHTML() in jQuery :(
-    // Find all placeholder/replacement content of Drupal plugins.
-    $content.find('.drupal-content').each(function() {
-      // Recursively process DOM elements below this element to apply special
-      // properties.
-      var $drupalContent = $(this);
-      $.each(specialProperties, function(element, properties) {
-        $drupalContent.find(element).andSelf().each(function() {
-          for (var property in properties) {
-            if (property == 'class') {
-              $(this).addClass(properties[property]);
-            }
-            else {
-              $(this).attr(property, properties[property]);
-            }
+    jQuery.each(specialProperties, function(element, properties) {
+      $content.find(element).each(function() {
+        for (var property in properties) {
+          if (property == 'class') {
+            $(this).addClass(properties[property]);
           }
-        });
+          else {
+            $(this).attr(property, properties[property]);
+          }
+        }
       });
     });
     return $content.html();
@@ -216,4 +206,3 @@ Drupal.wysiwyg.editor.instance.tinymce = {
   }
 };
 
-})(jQuery);

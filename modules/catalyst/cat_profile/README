@@ -1,0 +1,7 @@
+site_profile.tar.gz is the template site profile to use.
+
+Please don't modify cat_profile in your project, either add the functions to
+your site_profile if they're specific to your site, or merge them into
+cat_profile inside the cat_drupal repository for everyone to use.
+
+Thanks
