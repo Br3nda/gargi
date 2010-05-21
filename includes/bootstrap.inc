@@ -768,11 +768,35 @@ function referer_uri() {
 /**
  * Encode special characters in a plain-text string for display as HTML.
  *
- * Uses drupal_validate_utf8 to prevent cross site scripting attacks on
+ * Also validates strings as UTF-8 to prevent cross site scripting attacks on
  * Internet Explorer 6.
+ *
+ * @param $text
+ *   The text to be checked or processed.
+ * @return
+ *   An HTML safe version of $text, or an empty string if $text is not
+ *   valid UTF-8.
+ *
+ * @see drupal_validate_utf8().
  */
 function check_plain($text) {
-  return drupal_validate_utf8($text) ? htmlspecialchars($text, ENT_QUOTES) : '';
+  static $php525;
+
+  if (!isset($php525)) {
+    $php525 = version_compare(PHP_VERSION, '5.2.5', '>=');
+  }
+  // We duplicate the preg_match() to validate strings as UTF-8 from
+  // drupal_validate_utf8() here. This avoids the overhead of an additional
+  // function call, since check_plain() may be called hundreds of times during
+  // a request. For PHP 5.2.5+, this check for valid UTF-8 should be handled
+  // internally by PHP in htmlspecialchars().
+  // @see http://www.php.net/releases/5_2_5.php
+  // @todo remove this when support for either IE6 or PHP < 5.2.5 is dropped.
+
+  if ($php525) {
+    return htmlspecialchars($text, ENT_QUOTES, 'UTF-8');
+  }
+  return (preg_match('/^./us', $text) == 1) ? htmlspecialchars($text, ENT_QUOTES, 'UTF-8') : '';
 }
 
 /**
@@ -808,6 +832,7 @@ function drupal_validate_utf8($text) {
   if (strlen($text) == 0) {
     return TRUE;
   }
+  // For performance reasons this logic is duplicated in check_plain().
   return (preg_match('/^./us', $text) == 1);
 }
 
@@ -1054,6 +1079,10 @@ function _drupal_bootstrap($phase) {
       // Initialize the default database.
       require_once './includes/database.inc';
       db_set_active();
+      // Allow specifying alternate lock implementations in settings.php, like
+      // those using APC or memcached.
+      require_once variable_get('lock_inc', './includes/lock.inc');
+      lock_init();
       break;
 
     case DRUPAL_BOOTSTRAP_ACCESS:
@@ -1094,8 +1123,6 @@ function _drupal_bootstrap($phase) {
         exit;
       }
       // Prepare for non-cached page workflow.
-      require_once variable_get('lock_inc', './includes/lock.inc');
-      lock_init();
       drupal_page_header();
       break;
 
@@ -1234,7 +1261,8 @@ function ip_address() {
       if (!empty($reverse_proxy_addresses) && in_array($ip_address, $reverse_proxy_addresses, TRUE)) {
         // If there are several arguments, we need to check the most
         // recently added one, i.e. the last one.
-        $ip_address = array_pop(explode(',', $_SERVER['HTTP_X_FORWARDED_FOR']));
+        $ip_address_parts = explode(',', $_SERVER['HTTP_X_FORWARDED_FOR']);
+        $ip_address = array_pop($ip_address_parts);
       }
     }
   }
