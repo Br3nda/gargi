@@ -1,9 +1,10 @@
 name = Drupal Status
 description = Collects drupal status information and emails reports via cron
+dependencies[] = update
 core = 6.x
 package = Catalyst
-version = 6.x-2.0-beta3
+version = 6.x-2.2
 project status url = http://drupal-status.catalyst.net.nz/release-history
 project = drupal_status
-datestamp = 1268777573
+datestamp = 1274853027
 dependencies[] = update
