@@ -149,8 +149,7 @@ function drupal_status_drupal_status_data() {
   global $status_codes;
 
   $data = array();
-
-  $general = $data['general'];
+  $general = array();
 
   $general['version'] = VERSION;
   $general['report_timestamp'] = time();
@@ -171,22 +170,33 @@ function drupal_status_drupal_status_data() {
   $general['node_count'] = db_result(db_query('SELECT COUNT(*) FROM {node}'));
   $general['user_count'] = db_result(db_query('SELECT COUNT(*) FROM {users}'));
   $general['hostname'] = rtrim(`hostname -f`);
-  $script_filename = escapeshellarg($_SERVER['SCRIPT_FILENAME']);
+  $dir = exec('pwd');
+  $filename = $_SERVER['PHP_SELF'];
+  $script_filename = escapeshellarg($dir . $filename);
   $general['debian_package'] = rtrim(preg_replace('/\s*:.*/', '', `dpkg -S $script_filename`));
   if ( $general['debian_package'] ) {
     $debian_package = escapeshellarg($general['debian_package']);
     $general['debian_version'] = rtrim(shell_exec('dpkg-query -W  -f \'${version}\' ' . $debian_package));
   }
-  $git_hash = `git rev-parse HEAD`;
-  if ( $git_hash ) {
-    $general['git_head'] = rtrim($git_hash);
-    $general['git_origin'] = rtrim(`git config remote.origin.url`);
-    $general['git_local_branch'] = rtrim(`git name-rev --name-only HEAD`);
-    $general['git_remote_branch'] = shell_exec('git config branch.' . $general['git_local_branch'] . '.merge');
+  // Is this a git repo?
+  if (file_exists('.git') && is_dir('.git')) {
+    $git_exists = `which git`;
+    $git_hash = isset($git_exists) ? `git rev-parse HEAD` : NULL;
+
+    if ( isset($git_hash) ) {
+      $general['git_head'] = rtrim($git_hash);
+      $general['git_origin'] = rtrim(`git config remote.origin.url`);
+      $general['git_local_branch'] = rtrim(`git name-rev --name-only HEAD`);
+      $general['git_remote_branch'] = shell_exec('git config branch.' . $general['git_local_branch'] . '.merge');
+    }
   }
 
   $data['general'] = $general;
 
+  if(!module_exists('update')){
+    watchdog('Drupal Status', 'Cannot send Drupal status information. Please enable the update module.', array(), WATCHDOG_ERROR);
+    return;
+  }
   if ($available = update_get_available(TRUE)) {
     module_load_include('inc', 'update', 'update.compare');
     $modules = array();
@@ -195,14 +205,16 @@ function drupal_status_drupal_status_data() {
 
     foreach($components as $component => $value){
       $modules[$component] = array();
-      $modules[$component]['name'] = $value['title'];
-      $modules[$component]['project'] = $value['name'];
-      $modules[$component]['description'] = $value['info']['description'];
-      $modules[$component]['installed_version'] = $value['existing_version'];
-      $modules[$component]['latest_version'] = $value['releases'][$value['latest_version']];
-      $modules[$component]['recommended_version'] = $value['releases'][$value['recommended']];
-      $modules[$component]['link'] = $value['link'];
-      $modules[$component]['status'] = $value['status'];
+      $modules[$component]['name'] = isset($value['title']) ? $value['title'] : 'unknown';
+      $modules[$component]['project'] = isset($value['name']) ? $value['name'] : 'unknown';
+      $modules[$component]['description'] = isset($value['info']['description']) ? $value['info']['description'] : 'unknown';
+      $modules[$component]['installed_version'] = isset($value['existing_version']) ? $value['existing_version'] : 'unknown';
+      $modules[$component]['latest_version'] = (isset($value['latest_version']) && isset($value['releases'][$value['latest_version']])) ?
+        $value['releases'][$value['latest_version']] : 'unknown';
+      $modules[$component]['recommended_version'] = (isset($value['recommended']) && isset($value['releases'][$value['recommended']])) ?
+        $value['releases'][$value['recommended']] : 'unknown';
+      $modules[$component]['link'] = isset($value['link']) ? $value['link'] : 'unknown';
+      $modules[$component]['status'] = isset($value['status']) ? $value['status'] : 'unknown';
       $modules[$component]['status_description'] = isset($status_codes[$value['status']]) ? $status_codes[$value['status']] : 'unknown';
     }
   }
@@ -212,7 +224,7 @@ function drupal_status_drupal_status_data() {
   $data['modules'] = $modules;
 
   // gather a list of all files in the webroot (excluding files/*)
-  $data['files'] = array_keys(file_scan_directory('.', '.*', array('sites/.+/files')));
+  $data['files'] = array_keys(file_scan_directory('.', '.*', array('files', 'sites/.+/files')));
 
   return $data;
 }
@@ -261,34 +273,14 @@ function drupal_status_data_display(){
   );
   unset($data['general']);
 
-  $content .= '<h2>Modules</h2>';
-  if(module_exists('update')){
-    // append advanced update status report
-    module_load_include('inc', 'update', 'update.report');
-    $content .= update_status();
-  }else{
-    $modules = array();
-    foreach ( $data['modules'] as $module => $info ) {
-      $modules[] = array(
-        $module,
-        $info->info['name'],
-        $info->info['version'],
-        $info->status ? 'Yes' : 'No',
-      );
-    }
-    // append basic info only
-    $content .= theme_table(
-      array(
-        'Module',
-        'Name',
-        'Version',
-        'Installed',
-      ),
-      $modules
-    );
+  if(!module_exists('update')){
+    drupal_set_message('Drupal Status requires the update module. Please enable the update module.', 'error');
+    return $content;
   }
-  unset($data['modules']);
-  $content .= theme('box', 'Unknown', '<pre>' . print_r($data, 1) . '</pre>');
+  // append advanced update status report
+  module_load_include('inc', 'update', 'update.report');
+  $content .= '<h2>Modules</h2>';
+  $content .= update_status();
 
   return $content;
 }
