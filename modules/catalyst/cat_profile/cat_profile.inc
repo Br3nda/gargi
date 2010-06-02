@@ -124,7 +124,7 @@ function _cat_profile_role_permission($role, $permission, $action='ADD') {
 
 /**
  * Create a user
- * 
+ *
  * @deprecated Note: You can probably do this with user_save() just as effectively.
  * @param string $username their username
  * @param string $mail email address
@@ -135,7 +135,7 @@ function _cat_profile_role_permission($role, $permission, $action='ADD') {
  */
 function cat_profile_create_user($username, $mail, $pass_md5, $roles = array()) {
   $res_arr = array();
-  
+
   // do they exist?
   $res = db_query("SELECT uid FROM {users} WHERE name='%s'", $username);
   $uid = db_result($res);
@@ -296,15 +296,19 @@ function cat_profile_update_sql() {
 }
 
 /**
-* Programmatically create CCK fields and types using the content copy module
-* @param $type string
-* content type to create, defaults to new type, if type exists, only fields will be added
-* @param $macro array
-* exported array from content types -> export. If file is not specified, macro will be used
-* @param $file string
-* path to file containing content copy exported macro data structure. no escaping needed.
-* @author David Thomas <davidt@catalyst.net.nz>
-*/
+ * Programmatically create CCK fields and types using the content copy module
+ *
+ * @deprecated content types are exportable via Features. See http://drupal.org/project/features
+ *
+ * @param $type string
+ *  content type to create, defaults to new type, if type exists, only fields will be added
+ * @param $macro array
+ *  exported array from content types -> export. If file is not specified, macro will be used
+ * @param $file string
+ *  path to file containing content copy exported macro data structure. no escaping needed.
+ *
+ * @author David Thomas <davidt@catalyst.net.nz>
+ */
 function cat_profile_import_content_type($type = '<create>', $macro = '', $file = '') {
   if(!module_exists("content_copy")){
     drupal_set_message('Programmatically creating CCK fields requires the Content Copy module. Exiting.');
@@ -312,7 +316,7 @@ function cat_profile_import_content_type($type = '<create>', $macro = '', $file 
   }
   require_once drupal_get_path('module', 'content').'/includes/content.admin.inc';
   require_once drupal_get_path('module', 'node') .'/content_types.inc';
-  
+
   $values = array();
   $values['type_name'] = $type;
   if($file){
@@ -403,6 +407,8 @@ function _cat_profile_get_site_profiles() {
 /**
  * Installs all types from *.cck.inc files inside your site profile
  *
+ * @deprecated support in Features module.
+ *
  * @return void
  * @todo should return something
  * @author David Thomas <davidt@catalyst.net.nz>
@@ -444,7 +450,7 @@ function cat_profile_install_contexts() {
         $context = new StdClass;
         // on error resume next
         @eval(file_get_contents($included_context));
-  
+
         context_save($context);
       }
     }
@@ -454,7 +460,7 @@ function cat_profile_install_contexts() {
 /**
  * Implementation of hook_imagecache_default_presets
  * include imagecache exported presets from imagecache dir
- * 
+ *
  * @deprecated use Features module instead, where possible
  */
 function _cat_profile_imagecache_default_presets() {
@@ -477,7 +483,7 @@ function _cat_profile_imagecache_default_presets() {
 /**
  * A form called from a menu callback to export a variable and display it.
  * This is useful when you need to see a variable for cat_profile_variable_set()
- * 
+ *
  * @author Neil Bertram <neil@catalyst.net.nz>
  */
 function cat_profile_var_dump_form(&$form_state) {
@@ -523,9 +529,9 @@ function cat_profile_var_dump_form_submit(&$form, &$form_state) {
 
 /**
  * Set a new string override for t()
- * 
+ *
  * Will replace any existing translation
- * 
+ *
  * @param string $orig the string to match
  * @param string $new what to replace it with
  * @param string $lang the language code to replace it with
@@ -541,6 +547,9 @@ function cat_profile_set_string_override($orig, $new, $lang = 'en') {
 
 /**
  * Sets a variable, checking that it sets correctly
+ *
+ * @deprecated user strongarm with features instead. http://drupal.org/project/strongarm.
+ *
  * @param string $name the name of the variable to set
  * @param string $value the value of the variable
  * @return array standard .install format
