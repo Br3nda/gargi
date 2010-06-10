@@ -1,0 +1,52 @@
+<?php
+
+/**
+ * Implementation of hook_schema_alter().
+ */
+function cat_profile_schema_alter(&$schemas) {
+  foreach ($schemas as $table_name => &$schema) {
+    $function = 'cat_profile_schema_' . $table_name . '_alter';
+    if (function_exists($function)) {
+      $function($schema);
+    }
+  }
+}
+
+/**
+ * Define available static fields in {workflows}.
+ */
+function cat_profile_schema_workflows_alter(&$schema) {
+  // All fields in this table can be made static.
+  $schema['cat_profile_static_fields'] = array_keys($schema['fields']);
+  $schema['cat_profile_export'] = array(
+    'workflow_states' => 'wid',
+    'workflow_type_map' => 'wid',
+  );
+}
+
+/**
+ * Define available static fields in {workflow_states}.
+ */
+function cat_profile_schema_workflow_states_alter(&$schema) {
+  // All fields in this table can be made static.
+  $schema['cat_profile_static_fields'] = array_keys($schema['fields']);
+  $schema['cat_profile_export'] = array(
+    'workflow_transitions' => 'sid',
+  );
+}
+
+/**
+ * Define available static fields in {workflow_transitions}.
+ */
+function cat_profile_schema_workflow_transitions_alter(&$schema) {
+  // All fields in this table can be made static.
+  $schema['cat_profile_static_fields'] = array_keys($schema['fields']);
+}
+
+/**
+ * Define available static fields in {workflow_type_map}.
+ */
+function cat_profile_schema_workflow_type_map_alter(&$schema) {
+  // All fields in this table can be made static.
+  $schema['cat_profile_static_fields'] = array_keys($schema['fields']);
+}
