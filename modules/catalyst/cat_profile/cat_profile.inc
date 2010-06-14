@@ -616,7 +616,6 @@ function cat_profile_restore_row($table, $row, $keys = array()) {
       $sets[] = $field . ' = ' . db_type_placeholder($schema['fields'][$field]['type']);
     }
     $query = 'UPDATE {' . $table . '} SET ' . implode(', ', $sets) . ' WHERE ' . implode(' AND ', $where);
-    drupal_set_message(db_prefix_tables(call_user_func_array('sprintf', array_merge(array($query), $update_fields, $values))));
     return db_query($query, array_merge($update_fields, $values));
   }
   // If not, create it.
@@ -644,8 +643,6 @@ function cat_profile_static_fields($table) {
  * Make the generated data identical to $static_data.
  */
 function cat_profile_data_revert($static_data, $table, $conditions) {
-  $dynamic_data = cat_profile_export_table($table, $conditions);
-
   foreach ($static_data as $table => $rows) {
     // Firstly, restore (UPDATE) or create (INSERT) any missing
     // or out dated rows.
@@ -657,6 +654,8 @@ function cat_profile_data_revert($static_data, $table, $conditions) {
     // max value.
     cat_profile_update_psql_seqs($table);
   }
+
+  $dynamic_data = cat_profile_export_table($table, $conditions);
   // Secondly, look through the dynamic data and find any added
   // rows that are not in the static rows. DELETE them.
   foreach ($dynamic_data as $table => $rows) {
