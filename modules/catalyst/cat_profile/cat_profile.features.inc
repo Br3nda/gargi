@@ -1,46 +1,15 @@
 <?php
 
 /**
- * Implementation of hook_features_api().
- * @author Josh Waihi <josh@catalyst.net.nz>
+ * The Drupal AHAH framework won't execpt [, ], (, ), : or .
+ * as characters in input name attributes, therefore, we need
+ * to use a seperator that is compliant and doesn't conflict
+ * with existing namespaces. For example, a block's unique
+ * identifier is the theme, module and delta combine; for
+ * features that needs to be one key so wee need to seperate
+ * them with a seperator delimiter.
  */
-function cat_profile_features_api() {
-  return array(
-    'cat_profile_roles' => array(
-      'name' => t('Roles'),
-      'default_hook' => 'cat_profile_perms',
-    ),
-    'cat_profile_workflow' => array(
-      'name' => t('Workflow'),
-      'default_hook' => 'cat_profile_workflow_data',
-    ),
-    'cat_profile_data' => array(
-      'default_hook' => 'cat_profile_data',
-    ),
-  );
-}
-
-/**
- * @ingroup data
- * @{
- */
-
-/**
- * Implementation of hook_features_export_render().
- * @author Josh Waihi <josh@catalyst.net.nz>
- */
-function cat_profile_data_features_export_render($module_name, $data) {
-  $code = ' $data = array();' . PHP_EOL;
-  foreach ($data as $module) {
-    $code .= "  \$data += {$module_name}_cat_profile_{$module}_data();\n";
-  }
-  $code .= '  return $data;';
-  return array('cat_profile_data' => $code);
-}
-
-/**
- * @} End of "ingroup data"
- */
+define('CAT_PROFILE_FEATURES_DELIMITER', '----');
 
 /**
  * @ingroup workflow
@@ -69,7 +38,6 @@ function cat_profile_workflow_features_export($data, &$export, $module_name = ''
       $pipe['variable'][] = 'worflow_' . $type;
     }
   }
-  $export['features']['cat_profile_data']['workflow'] = 'workflow';
   $export['dependencies'][] = 'workflow';
   if (isset($pipe)) {
     return $pipe;
@@ -233,4 +201,141 @@ function cat_profile_roles_features_revert($module) {
 
 /**
  * @} End of "ingroup roles".
+ */
+
+/**
+ * @ingroup blocks.
+ * @{
+ */
+
+/**
+ * Implementation of hook_features_export_options().
+ * @author Josh Waihi <josh@catalyst.net.nz>
+ */
+function cat_profile_blocks_features_export_options()  {
+  $rs = db_query("SELECT b.theme, b.module, b.delta FROM {blocks} b INNER JOIN {system} s ON s.name = b.theme AND s.type = 'theme' WHERE s.status=1 OR s.name ='%s'", variable_get('theme_default'));
+  $blocks = array();
+  $module_blocks = array();
+  while ($row = db_fetch_array($rs)) {
+    if (!isset($module_blocks[$row['module']])) {
+      $module_blocks[$row['module']] = module_invoke($row['module'],'block','list');
+    }
+    // $key = strtr('theme--s--module--s--delta', $row);
+    $key = implode(CAT_PROFILE_FEATURES_DELIMITER, $row);
+    $blocks[$key] = $row['theme'] . ': ' . $module_blocks[$row['module']][$row['delta']]['info'];
+  }
+  return $blocks;
+}
+
+/**
+ * Implementation of hook_features_export().
+ * @author Josh Waihi <josh@catalyst.net.nz>
+ */
+function cat_profile_blocks_features_export($data, &$export, $module_name = '') {
+  foreach ($data as $key => $title) {
+    $export['features']['cat_profile_blocks'][$key] = $title;
+    list($theme, $module, $delta) = explode(CAT_PROFILE_FEATURES_DELIMITER, $key);
+    $export['dependencies'][$module] = $module;
+  }
+  $export['dependencies'][] = 'block';
+}
+
+/**
+ * Implementation of hook_features_export_render().
+ * @author Josh Waihi <josh@catalyst.net.nz>
+ */
+function cat_profile_blocks_features_export_render($module_name, $data) {
+  module_load_include('inc', 'cat_profile');
+  $export = array();
+  foreach ($data as $key) {
+    list($theme, $module, $delta) = explode(CAT_PROFILE_FEATURES_DELIMITER, $key);
+    $export = array_merge($export, cat_profile_export_table('blocks', array('theme' => $theme, 'module' => $module, 'delta' => $delta)));
+  }
+  $code = '  $data = ' . features_var_export($export, '  ') . ';' . PHP_EOL;
+  $code .= '  return $data;';
+  return array('cat_profile_blocks' => $code);
+}
+
+/**
+ * Implementation of hook_features_revert().
+ * @author Josh Waihi <josh@catalyst.net.nz>
+ */
+function cat_profile_blocks_features_revert($module) {
+  $data = module_invoke($module, 'cat_profile_blocks');
+  foreach ($data['blocks'] as $row) {
+    cat_profile_data_revert($data, 'blocks', array('theme' => $row['theme'], 'module' => $row['module'], 'delta' => $row['delta']));
+  }
+}
+
+/**
+ * @} End of "ingroup blocks".
+ */
+
+/**
+ * @ingroup messaging.
+ * @{
+ */
+
+/**
+ * Implementation of hook_features_export_options().
+ */
+function cat_profile_messaging_features_export_options() {
+  $rs = db_query('SELECT type, msgkey, method FROM {messaging_message_parts} ORDER BY type, method, msgkey');
+  while ($row = db_fetch_array($rs)) {
+    $key = implode(CAT_PROFILE_FEATURES_DELIMITER, $row);
+    $options[$key] = $key;
+  }
+  return $options;
+}
+
+/**
+ * Implementation of hook_features_export().
+ */
+function cat_profile_messaging_features_export($data, &$export, $module_name = '') {
+  foreach ($data as $preset) {
+    $export['features']['cat_profile_messaging'][$preset] = $preset;
+  }
+}
+
+/**
+ * Implementation of hook_features_export_render().
+ */
+function cat_profile_messaging_features_export_render($module_name = '', $data) {
+  foreach ($data as $key) {
+    $args = explode(CAT_PROFILE_FEATURES_DELIMITER, $key);
+    $message = db_result(db_query("SELECT message FROM {messaging_message_parts} WHERE type = '%s' AND msgkey = '%s' AND method = '%s'", $args));
+    $presets[$key] = $message;
+  }
+  $code = "  \$message_parts = ". features_var_export($presets, '  ') .";\n";
+  $code .= '  return $message_parts;';
+  return array('cat_profile_messaging' => $code);
+}
+
+/**
+ * Implementation of hook_features_revert().
+ */
+function cat_profile_messaging_features_revert($module = 'messaging') {
+  module_load_include('inc', 'messaging', 'messaging.admin');
+  $defaults = module_invoke($module, 'messaging_features_store');
+  if (empty($defaults)) {
+    return;
+  }
+  $settings = array();
+  foreach ($defaults as $key => $message) {
+    list($type, $msgkey, $method) = explode(CAT_PROFILE_FEATURES_DELIMITER, $key);
+    $settings[$type][$msgkey][$method] = $message;
+  }
+  foreach ($settings as $group => $messages) {
+    $form_values = array(
+      'values' => array(
+        'group' => $group,
+        'messages' => $messages,
+      ),
+    );
+    messaging_admin_message_form_submit(array(), $form_values);
+  }
+}
+
+/**
+ * @} End of "ingroup messaging"
  */
