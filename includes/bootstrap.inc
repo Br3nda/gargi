@@ -35,19 +35,92 @@ define('CACHE_NORMAL', 1);
 define('CACHE_AGGRESSIVE', 2);
 
 /**
+ * Log message severity -- Emergency: system is unusable.
  *
- * Severity levels, as defined in RFC 3164 http://www.faqs.org/rfcs/rfc3164.html
+ * The WATCHDOG_* constant definitions correspond to the logging severity levels
+ * defined in RFC 3164, section 4.1.1: http://www.faqs.org/rfcs/rfc3164.html
+ *
  * @see watchdog()
  * @see watchdog_severity_levels()
  */
-define('WATCHDOG_EMERG',    0); // Emergency: system is unusable
-define('WATCHDOG_ALERT',    1); // Alert: action must be taken immediately
-define('WATCHDOG_CRITICAL', 2); // Critical: critical conditions
-define('WATCHDOG_ERROR',    3); // Error: error conditions
-define('WATCHDOG_WARNING',  4); // Warning: warning conditions
-define('WATCHDOG_NOTICE',   5); // Notice: normal but significant condition
-define('WATCHDOG_INFO',     6); // Informational: informational messages
-define('WATCHDOG_DEBUG',    7); // Debug: debug-level messages
+define('WATCHDOG_EMERG', 0);
+
+/**
+ * Log message severity -- Alert: action must be taken immediately.
+ *
+ * The WATCHDOG_* constant definitions correspond to the logging severity levels
+ * defined in RFC 3164, section 4.1.1: http://www.faqs.org/rfcs/rfc3164.html
+ *
+ * @see watchdog()
+ * @see watchdog_severity_levels()
+ */
+define('WATCHDOG_ALERT', 1);
+
+/**
+ * Log message severity -- Critical: critical conditions.
+ *
+ * The WATCHDOG_* constant definitions correspond to the logging severity levels
+ * defined in RFC 3164, section 4.1.1: http://www.faqs.org/rfcs/rfc3164.html
+ *
+ * @see watchdog()
+ * @see watchdog_severity_levels()
+ */
+define('WATCHDOG_CRITICAL', 2);
+
+/**
+ * Log message severity -- Error: error conditions.
+ *
+ * The WATCHDOG_* constant definitions correspond to the logging severity levels
+ * defined in RFC 3164, section 4.1.1: http://www.faqs.org/rfcs/rfc3164.html
+ *
+ * @see watchdog()
+ * @see watchdog_severity_levels()
+ */
+define('WATCHDOG_ERROR', 3);
+
+/**
+ * Log message severity -- Warning: warning conditions.
+ *
+ * The WATCHDOG_* constant definitions correspond to the logging severity levels
+ * defined in RFC 3164, section 4.1.1: http://www.faqs.org/rfcs/rfc3164.html
+ *
+ * @see watchdog()
+ * @see watchdog_severity_levels()
+ */
+define('WATCHDOG_WARNING', 4);
+
+/**
+ * Log message severity -- Notice: normal but significant condition.
+ *
+ * The WATCHDOG_* constant definitions correspond to the logging severity levels
+ * defined in RFC 3164, section 4.1.1: http://www.faqs.org/rfcs/rfc3164.html
+ *
+ * @see watchdog()
+ * @see watchdog_severity_levels()
+ */
+define('WATCHDOG_NOTICE', 5);
+
+/**
+ * Log message severity -- Informational: informational messages.
+ *
+ * The WATCHDOG_* constant definitions correspond to the logging severity levels
+ * defined in RFC 3164, section 4.1.1: http://www.faqs.org/rfcs/rfc3164.html
+ *
+ * @see watchdog()
+ * @see watchdog_severity_levels()
+ */
+define('WATCHDOG_INFO', 6);
+
+/**
+ * Log message severity -- Debug: debug-level messages.
+ *
+ * The WATCHDOG_* constant definitions correspond to the logging severity levels
+ * defined in RFC 3164, section 4.1.1: http://www.faqs.org/rfcs/rfc3164.html
+ *
+ * @see watchdog()
+ * @see watchdog_severity_levels()
+ */
+define('WATCHDOG_DEBUG', 7);
 
 /**
  * First bootstrap phase: initialize configuration.
@@ -400,6 +473,13 @@ function conf_init() {
     // We escape the hostname because it can be modified by a visitor.
     if (!empty($_SERVER['HTTP_HOST'])) {
       $cookie_domain = check_plain($_SERVER['HTTP_HOST']);
+      // Strip leading periods, www., and port numbers from cookie domain.
+      $cookie_domain = ltrim($cookie_domain, '.');
+      if (strpos($cookie_domain, 'www.') === 0) {
+        $cookie_domain = substr($cookie_domain, 4);
+      }
+      $cookie_domain = explode(':', $cookie_domain);
+      $cookie_domain = '.'. $cookie_domain[0];
     }
   }
   // To prevent session cookies from being hijacked, a user can configure the
@@ -411,13 +491,6 @@ function conf_init() {
   if (ini_get('session.cookie_secure')) {
     $session_name .= 'SSL';
   }
-  // Strip leading periods, www., and port numbers from cookie domain.
-  $cookie_domain = ltrim($cookie_domain, '.');
-  if (strpos($cookie_domain, 'www.') === 0) {
-    $cookie_domain = substr($cookie_domain, 4);
-  }
-  $cookie_domain = explode(':', $cookie_domain);
-  $cookie_domain = '.'. $cookie_domain[0];
   // Per RFC 2109, cookie domains must contain at least one dot other than the
   // first. For hosts such as 'localhost' or IP Addresses we don't set a cookie domain.
   if (count(explode('.', $cookie_domain)) > 2 && !is_numeric(str_replace('.', '', $cookie_domain))) {
@@ -708,14 +781,18 @@ function drupal_page_cache_header($cache) {
   header("Expires: Sun, 19 Nov 1978 05:00:00 GMT");
   header("Cache-Control: must-revalidate");
 
-  if (variable_get('page_compression', TRUE)) {
+  if (variable_get('page_compression', TRUE) && extension_loaded('zlib')) {
     // Determine if the browser accepts gzipped data.
-    if (@strpos($_SERVER['HTTP_ACCEPT_ENCODING'], 'gzip') === FALSE && function_exists('gzencode')) {
-      // Strip the gzip header and run uncompress.
-      $cache->data = gzinflate(substr(substr($cache->data, 10), 0, -8));
-    }
-    elseif (function_exists('gzencode')) {
+    if (isset($_SERVER['HTTP_ACCEPT_ENCODING']) && strpos($_SERVER['HTTP_ACCEPT_ENCODING'], 'gzip') !== FALSE) {
+      // $cache->data is already gzip'ed, so make sure zlib.output_compression
+      // does not compress it once more.
+      ini_set('zlib.output_compression', '0');
       header('Content-Encoding: gzip');
+    }
+    else {
+      // The client does not support compression, so unzip the data in the
+      // cache. Strip the gzip header and run uncompress.
+      $cache->data = gzinflate(substr(substr($cache->data, 10), 0, -8));
     }
   }
 
