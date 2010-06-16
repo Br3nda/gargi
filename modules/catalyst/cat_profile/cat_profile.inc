@@ -124,7 +124,7 @@ function _cat_profile_role_permission($role, $permission, $action='ADD') {
 
 /**
  * Create a user
- * 
+ *
  * @deprecated Note: You can probably do this with user_save() just as effectively.
  * @param string $username their username
  * @param string $mail email address
@@ -135,7 +135,7 @@ function _cat_profile_role_permission($role, $permission, $action='ADD') {
  */
 function cat_profile_create_user($username, $mail, $pass_md5, $roles = array()) {
   $res_arr = array();
-  
+
   // do they exist?
   $res = db_query("SELECT uid FROM {users} WHERE name='%s'", $username);
   $uid = db_result($res);
@@ -296,15 +296,19 @@ function cat_profile_update_sql() {
 }
 
 /**
-* Programmatically create CCK fields and types using the content copy module
-* @param $type string
-* content type to create, defaults to new type, if type exists, only fields will be added
-* @param $macro array
-* exported array from content types -> export. If file is not specified, macro will be used
-* @param $file string
-* path to file containing content copy exported macro data structure. no escaping needed.
-* @author David Thomas <davidt@catalyst.net.nz>
-*/
+ * Programmatically create CCK fields and types using the content copy module
+ *
+ * @deprecated content types are exportable via Features. See http://drupal.org/project/features
+ *
+ * @param $type string
+ *  content type to create, defaults to new type, if type exists, only fields will be added
+ * @param $macro array
+ *  exported array from content types -> export. If file is not specified, macro will be used
+ * @param $file string
+ *  path to file containing content copy exported macro data structure. no escaping needed.
+ *
+ * @author David Thomas <davidt@catalyst.net.nz>
+ */
 function cat_profile_import_content_type($type = '<create>', $macro = '', $file = '') {
   if(!module_exists("content_copy")){
     drupal_set_message('Programmatically creating CCK fields requires the Content Copy module. Exiting.');
@@ -312,7 +316,7 @@ function cat_profile_import_content_type($type = '<create>', $macro = '', $file 
   }
   require_once drupal_get_path('module', 'content').'/includes/content.admin.inc';
   require_once drupal_get_path('module', 'node') .'/content_types.inc';
-  
+
   $values = array();
   $values['type_name'] = $type;
   if($file){
@@ -403,6 +407,8 @@ function _cat_profile_get_site_profiles() {
 /**
  * Installs all types from *.cck.inc files inside your site profile
  *
+ * @deprecated support in Features module.
+ *
  * @return void
  * @todo should return something
  * @author David Thomas <davidt@catalyst.net.nz>
@@ -444,7 +450,7 @@ function cat_profile_install_contexts() {
         $context = new StdClass;
         // on error resume next
         @eval(file_get_contents($included_context));
-  
+
         context_save($context);
       }
     }
@@ -454,7 +460,7 @@ function cat_profile_install_contexts() {
 /**
  * Implementation of hook_imagecache_default_presets
  * include imagecache exported presets from imagecache dir
- * 
+ *
  * @deprecated use Features module instead, where possible
  */
 function _cat_profile_imagecache_default_presets() {
@@ -477,7 +483,7 @@ function _cat_profile_imagecache_default_presets() {
 /**
  * A form called from a menu callback to export a variable and display it.
  * This is useful when you need to see a variable for cat_profile_variable_set()
- * 
+ *
  * @author Neil Bertram <neil@catalyst.net.nz>
  */
 function cat_profile_var_dump_form(&$form_state) {
@@ -523,9 +529,9 @@ function cat_profile_var_dump_form_submit(&$form, &$form_state) {
 
 /**
  * Set a new string override for t()
- * 
+ *
  * Will replace any existing translation
- * 
+ *
  * @param string $orig the string to match
  * @param string $new what to replace it with
  * @param string $lang the language code to replace it with
@@ -541,6 +547,9 @@ function cat_profile_set_string_override($orig, $new, $lang = 'en') {
 
 /**
  * Sets a variable, checking that it sets correctly
+ *
+ * @deprecated user strongarm with features instead. http://drupal.org/project/strongarm.
+ *
  * @param string $name the name of the variable to set
  * @param string $value the value of the variable
  * @return array standard .install format
@@ -561,4 +570,177 @@ function cat_profile_variable_set($name, $value) {
 function cat_profile_variable_delete($name) {
   variable_del($name);
   return array('query' => t('Delete variable @name', array('@name' => $name)), 'success' => variable_get($name, 'random!!') == 'random!!');
+}
+
+/**
+ * Return a row in a table back to its static state.
+ *
+ * @param string $table the name of the table to restore to.
+ * @param array $row key/value pairs of information to store to the table.
+ * @param array $keys the conditions which must stay static such as serial columns.
+ * @author Josh Waihi <josh@catalyst.net.nz>
+ */
+function cat_profile_restore_row($table, $row, $keys = array()) {
+  $schema = drupal_get_schema($table);
+
+  // The table being restored must support cat_profile.
+  if (!isset($schema['cat_profile_static_fields'])) {
+    return FALSE;
+  }
+  $fields = array();
+  foreach ($schema['cat_profile_static_fields'] as $field) {
+    if (isset($row[$field])) {
+      $fields[$field] = $row[$field];
+    }
+  }
+  if (!is_array($keys)) {
+    $keys = array($keys);
+  }
+  if (empty($keys) && isset($schema['primary key'])) {
+    $keys = $schema['primary key'];
+  }
+  // If there are no keys then we can create an UPDATE query. Return FALSE.
+  elseif (empty($keys)) {
+    return FALSE;
+  }
+  $where = $values = array();
+  foreach ($keys as $field) {
+    $where[$field] = $field . ' = ' . db_type_placeholder($schema['fields'][$field]['type']);
+    $values[$field] = $row[$field];
+  }
+  // If the record exist, update it.
+  if (db_result(db_query('SELECT COUNT(*) FROM {' . $table . '} WHERE ' . implode(' AND ', $where), $values))) {
+    $sets = array();
+    $update_fields = array_diff_assoc($fields, $values);
+    foreach ($update_fields as $field => $value) {
+      $sets[] = $field . ' = ' . db_type_placeholder($schema['fields'][$field]['type']);
+    }
+    $query = 'UPDATE {' . $table . '} SET ' . implode(', ', $sets) . ' WHERE ' . implode(' AND ', $where);
+    return db_query($query, array_merge($update_fields, $values));
+  }
+  // If not, create it.
+  else {
+    $placeholders = array();
+    foreach ($fields as $field => $value) {
+      $placeholders[] = db_type_placeholder($schema['fields'][$field]['type']);
+    }
+    $query = 'INSERT INTO {' . $table . '} (' . implode(', ', array_keys($fields)) . ') VALUES (' . implode(', ', $placeholders) . ')';
+    return db_query($query, $fields) ? SAVED_NEW : FALSE;
+  }
+}
+
+/**
+ * Retrieve available static data fields from a table.
+ */
+function cat_profile_static_fields($table) {
+  $schema = drupal_get_schema($table);
+  return isset($schema['cat_profile_static_fields']) ? $schema['cat_profile_static_fields'] : array();
+}
+
+/**
+ * Revert an exported data set.
+ *
+ * Make the generated data identical to $static_data.
+ */
+function cat_profile_data_revert($static_data, $table, $conditions) {
+  foreach ($static_data as $table => $rows) {
+    // Firstly, restore (UPDATE) or create (INSERT) any missing
+    // or out dated rows.
+    foreach ($rows as $row) {
+      cat_profile_restore_row($table, $row);
+    }
+    // In PostgreSQL, we could potentially upset table
+    // sequences so we should set them to there current
+    // max value.
+    cat_profile_update_psql_seqs($table);
+  }
+
+  $dynamic_data = cat_profile_export_table($table, $conditions);
+  // Secondly, look through the dynamic data and find any added
+  // rows that are not in the static rows. DELETE them.
+  foreach ($dynamic_data as $table => $rows) {
+    foreach ($rows as $r) {
+      $remove = TRUE;
+      foreach ($static_data[$table] as $row) {
+        $diff = array_diff_assoc($r, $row);
+        // If we find an identical row, then no need to remove it
+        // and no need to continue looking.
+        if (!($remove = !empty($diff))) break;
+      }
+      if ($remove) {
+        $schema = drupal_get_schema($table);
+        $conditions = array();
+        foreach ($r as $key => $value) {
+          $conditions[] = $key . ' = ' . db_type_placeholder($schema['fields'][$key]['type']);
+        }
+        db_query('DELETE FROM {' . $table . '} WHERE ' . implode(' AND ', $conditions), $r);
+      }
+    }
+  }
+}
+
+/**
+ * Export information from a table and its releated tables.
+ */
+function cat_profile_export_table($table, $conditions = array()) {
+  $schema = drupal_get_schema($table);
+  if (!isset($schema['cat_profile_static_fields'])) {
+    return array();
+  }
+  $query = 'SELECT ' . implode(', ', $schema['cat_profile_static_fields']) . ' FROM {' . $table . '} %where% ORDER BY ' . implode(', ', $schema['cat_profile_static_fields']);
+  if (!empty($conditions)) {
+    $where = $args = array();
+    foreach ($conditions as $key => $value) {
+      if (!is_array($value)) {
+        $value = array($value);
+      }
+      $where[] =  $key . ' IN (' . db_placeholders($value, $schema['fields'][$key]['type']) . ')';
+      foreach ($value as $arg) {
+        $args[] = $arg;
+      }
+    }
+    $query = strtr($query, array('%where%' => 'WHERE ' . implode(' AND ', $where)));
+  }
+  else {
+    $query = str_replace('%where%', '', $query);
+  }
+  $rs = db_query($query, $args);
+  $data[$table] = array();
+  $export = array();
+  while ($row = db_fetch_array($rs)) {
+    $data[$table][] = $row;
+    if (!isset($schema['cat_profile_export'])) {
+      continue;
+    }
+    foreach ($schema['cat_profile_export'] as $t => $column) {
+      $export[$t][$column][] = $row[$column];
+    }
+  }
+  foreach ($export as $table => $conditions) {
+    $data += cat_profile_export_table($table, $conditions);
+  }
+  return $data;
+}
+
+/**
+ * Reset PostgreSQL sequences.
+ *
+ * Cat profile may insert or update serial columns manually. Should this happen
+ * the sequences will need to be updated to ensure no serial clashes occur
+ * later on when addtional values are added.
+ */
+function cat_profile_update_psql_seqs($table) {
+  global $db_type;
+  // If this isn't a PostgreSQL system, then this function isn't needed.
+  if ($db_type != 'pgsql') return TRUE;
+
+  $schema = drupal_get_schema($table);
+  foreach ($schema['fields'] as $field => $info) {
+    if ($info['type'] != 'serial') continue;
+
+    $seq = '{' . $table . '}_' . $field . '_seq';
+    // We use SELECT setval() syntax because ALTER SEQUENCE 'foo' RESTART WITH
+    // doesn't allow us to dynamically generate the sequence value.
+    db_query("SELECT setval('$seq', (SELECT MAX($field) FROM {" . $table . "}), true)");
+  }
 }
