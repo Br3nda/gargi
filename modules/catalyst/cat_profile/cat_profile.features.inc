@@ -219,6 +219,58 @@ function cat_profile_roles_features_revert($module) {
  */
 
 /**
+ * Implementation of hook_features_export_options().
+ * @author Elliot Pahl <elliot@catalyst.net.nz>
+ * @author Josh Waihi <josh@catalyst.net.nz>
+ */
+function cat_profile_taxonomy_features_export_options() {
+  $vocabs = array();
+  foreach (taxonomy_get_vocabularies() as $vid => $vocab) {
+    $vocabs[$vid] = $vocab->name;
+  }
+  return $vocabs;
+}
+
+/**
+ * Implementation of hook_features_export().
+ * @author Elliot Pahl <elliot@catalyst.net.nz>
+ * @author Josh Waihi <josh@catalyst.net.nz>
+ */
+function cat_profile_taxonomy_features_export($data, &$export, $module_name = '') {
+  foreach ($data as $vid) {
+    $export['features']['cat_profile_taxonomy'][$vid] = $vid;
+  }
+  $export['dependencies'][] = 'taxonomy';
+}
+
+/**
+ * Implementation of hook_features_export_render().
+ * @author Elliot Pahl <elliot@catalyst.net.nz>
+ * @author Josh Waihi <josh@catalyst.net.nz>
+ */
+function cat_profile_taxonomy_features_export_render($module_name, $data) {
+  module_load_include('inc', 'cat_profile');
+  $data = cat_profile_export_table('vocabulary', array('vid' => $data));
+  $code = ' $data = ' . features_var_export($data, '  ') . ';' . PHP_EOL;
+  $code .= ' return $data;';
+  return array('cat_profile_taxonomy' => $code);
+}
+
+/**
+ * Implementation of hook_features_revert().
+ * @author Elliot Pahl <elliot@catalyst.net.nz>
+ * @author Josh Waihi <josh@catalyst.net.nz>
+ */
+function cat_profile_taxonomy_features_revert($module) {
+  $data = module_invoke($module, 'cat_profile_taxonomy');
+  $vids = array();
+  foreach ($data['vocabulary'] as $row) {
+    $vids[] = $row['vid'];
+  }
+  cat_profile_data_revert($data, 'vocabulary', array('vid' => $vids));
+}
+
+/**
  * @} End of "ingroup taxonomy".
  */
 
