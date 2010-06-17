@@ -615,8 +615,11 @@ function cat_profile_restore_row($table, $row, $keys = array()) {
     foreach ($update_fields as $field => $value) {
       $sets[] = $field . ' = ' . db_type_placeholder($schema['fields'][$field]['type']);
     }
-    $query = 'UPDATE {' . $table . '} SET ' . implode(', ', $sets) . ' WHERE ' . implode(' AND ', $where);
-    return db_query($query, array_merge($update_fields, $values));
+    if (!empty($sets)) {
+      $query = 'UPDATE {' . $table . '} SET ' . implode(', ', $sets) . ' WHERE ' . implode(' AND ', $where);
+      return db_query($query, array_merge($update_fields, $values));
+    }
+    return TRUE;
   }
   // If not, create it.
   else {
