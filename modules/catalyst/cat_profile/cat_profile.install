@@ -12,6 +12,21 @@ function cat_profile_schema_alter(&$schemas) {
   }
 }
 
+/**********
+ *  Core  *
+ *********/
+
+/**
+ * Define available static fields in {blocks}.
+ */
+function cat_profile_schema_blocks_alter(&$schema) {
+  $schema['cat_profile_static_fields'] = array('module', 'theme', 'delta', 'status', 'weight', 'region', 'custom', 'throttle', 'visibility', 'pages', 'title', 'cache');
+}
+
+/***********
+ * Contrib *
+ ***********/
+
 /**
  * Define available static fields in {workflows}.
  */
@@ -57,9 +72,3 @@ function cat_profile_schema_workflow_type_map_alter(&$schema) {
   }
 }
 
-/**
- * Define available static fields in {blocks}.
- */
-function cat_profile_schema_blocks_alter(&$schema) {
-  $schema['cat_profile_static_fields'] = array('module', 'theme', 'delta', 'status', 'weight', 'region', 'custom', 'throttle', 'visibility', 'pages', 'title', 'cache');
-}
