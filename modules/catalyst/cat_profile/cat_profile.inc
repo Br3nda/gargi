@@ -643,16 +643,16 @@ function cat_profile_static_fields($table) {
  * Make the generated data identical to $static_data.
  */
 function cat_profile_data_revert($static_data, $table, $conditions) {
-  foreach ($static_data as $table => $rows) {
+  foreach ($static_data as $table_name => $rows) {
     // Firstly, restore (UPDATE) or create (INSERT) any missing
     // or out dated rows.
     foreach ($rows as $row) {
-      cat_profile_restore_row($table, $row);
+      cat_profile_restore_row($table_name, $row);
     }
     // In PostgreSQL, we could potentially upset table
     // sequences so we should set them to there current
     // max value.
-    cat_profile_update_psql_seqs($table);
+    cat_profile_update_psql_seqs($table_name);
   }
 
   $dynamic_data = cat_profile_export_table($table, $conditions);

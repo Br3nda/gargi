@@ -49,6 +49,12 @@ function cat_profile_schema_workflow_transitions_alter(&$schema) {
 function cat_profile_schema_workflow_type_map_alter(&$schema) {
   // All fields in this table can be made static.
   $schema['cat_profile_static_fields'] = array_keys($schema['fields']);
+
+  // Schema requires primary keys to be able to usefully be able to
+  // update the data.
+  if (!isset($schema['primary key'])) {
+    $schema['primary key'] = array('type', 'wid');
+  }
 }
 
 /**
