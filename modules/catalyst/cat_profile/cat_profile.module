@@ -21,7 +21,7 @@ function cat_profile_user($op, &$edit, &$account, $category = null) {
     $users_roles = user_roles(true, 'always have all permissions');
     module_load_include('inc', 'cat_profile');
     foreach ($users_roles as $role) {
-      _site_profile_role_ensure_all_perms($role);
+      cat_profile_role_ensure_all_perms($role);
     }
   }
 }
