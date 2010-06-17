@@ -11,8 +11,12 @@
  */
 define('CAT_PROFILE_FEATURES_DELIMITER', '----');
 
+/**********
+ *  Core  *
+ *********/
+
 /**
- * @ingroup workflow
+ * @ingroup blocks.
  * @{
  */
 
@@ -20,57 +24,63 @@ define('CAT_PROFILE_FEATURES_DELIMITER', '----');
  * Implementation of hook_features_export_options().
  * @author Josh Waihi <josh@catalyst.net.nz>
  */
-function cat_profile_workflow_features_export_options()  {
-  $workflows = workflow_get_all();
-  return $workflows;
+function cat_profile_blocks_features_export_options()  {
+  $rs = db_query("SELECT b.theme, b.module, b.delta FROM {blocks} b INNER JOIN {system} s ON s.name = b.theme AND s.type = 'theme' WHERE s.status=1 OR s.name ='%s'", variable_get('theme_default', 'garland'));
+  $blocks = array();
+  $module_blocks = array();
+  while ($row = db_fetch_array($rs)) {
+    if (!isset($module_blocks[$row['module']])) {
+      $module_blocks[$row['module']] = module_invoke($row['module'],'block','list');
+    }
+    // $key = strtr('theme--s--module--s--delta', $row);
+    $key = implode(CAT_PROFILE_FEATURES_DELIMITER, $row);
+    $blocks[$key] = $row['theme'] . ': ' . $module_blocks[$row['module']][$row['delta']]['info'];
+  }
+  return $blocks;
 }
 
 /**
  * Implementation of hook_features_export().
  * @author Josh Waihi <josh@catalyst.net.nz>
  */
-function cat_profile_workflow_features_export($data, &$export, $module_name = '') {
-  foreach ($data as $wid) {
-    $workflow = workflow_load($wid);
-    $export['features']['cat_profile_workflow'][$wid] = $wid;
-    $rs = db_query("SELECT type FROM {workflow_type_map} WHERE wid = %d", $wid);
-    while ($type = db_result($rs)) {
-      $pipe['variable'][] = 'worflow_' . $type;
-    }
+function cat_profile_blocks_features_export($data, &$export, $module_name = '') {
+  foreach ($data as $key => $title) {
+    $export['features']['cat_profile_blocks'][$key] = $title;
+    list($theme, $module, $delta) = explode(CAT_PROFILE_FEATURES_DELIMITER, $key);
+    $export['dependencies'][$module] = $module;
   }
-  $export['dependencies'][] = 'workflow';
-  if (isset($pipe)) {
-    return $pipe;
-  }
+  $export['dependencies'][] = 'block';
 }
 
 /**
  * Implementation of hook_features_export_render().
  * @author Josh Waihi <josh@catalyst.net.nz>
  */
-function cat_profile_workflow_features_export_render($module_name, $data) {
+function cat_profile_blocks_features_export_render($module_name, $data) {
   module_load_include('inc', 'cat_profile');
-  $data = cat_profile_export_table('workflows', array('wid' => $data));
-  $code = ' $data = ' . features_var_export($data, '  ') . ';' . PHP_EOL;
-  $code .= ' return $data;';
-  return array('cat_profile_workflow_data' => $code);
+  $export = array();
+  foreach ($data as $key) {
+    list($theme, $module, $delta) = explode(CAT_PROFILE_FEATURES_DELIMITER, $key);
+    $export = array_merge($export, cat_profile_export_table('blocks', array('theme' => $theme, 'module' => $module, 'delta' => $delta)));
+  }
+  $code = '  $data = ' . features_var_export($export, '  ') . ';' . PHP_EOL;
+  $code .= '  return $data;';
+  return array('cat_profile_blocks' => $code);
 }
 
 /**
  * Implementation of hook_features_revert().
  * @author Josh Waihi <josh@catalyst.net.nz>
  */
-function cat_profile_workflow_features_revert($module) {
-  $data = module_invoke($module, 'cat_profile_workflow_data');
-  $wids = array();
-  foreach ($data['workflows'] as $row) {
-    $wids[] = $row['wid'];
+function cat_profile_blocks_features_revert($module) {
+  $data = module_invoke($module, 'cat_profile_blocks');
+  foreach ($data['blocks'] as $row) {
+    cat_profile_data_revert($data, 'blocks', array('theme' => $row['theme'], 'module' => $row['module'], 'delta' => $row['delta']));
   }
-  cat_profile_data_revert($data, 'workflows', array('wid' => $wids));
 }
 
 /**
- * @} End of "ingroup workflow"
+ * @} End of "ingroup blocks".
  */
 
 /**
@@ -204,72 +214,69 @@ function cat_profile_roles_features_revert($module) {
  */
 
 /**
- * @ingroup blocks.
+ * @ingroup taxonomy.
  * @{
  */
 
 /**
  * Implementation of hook_features_export_options().
+ * @author Elliot Pahl <elliot@catalyst.net.nz>
  * @author Josh Waihi <josh@catalyst.net.nz>
  */
-function cat_profile_blocks_features_export_options()  {
-  $rs = db_query("SELECT b.theme, b.module, b.delta FROM {blocks} b INNER JOIN {system} s ON s.name = b.theme AND s.type = 'theme' WHERE s.status=1 OR s.name ='%s'", variable_get('theme_default'));
-  $blocks = array();
-  $module_blocks = array();
-  while ($row = db_fetch_array($rs)) {
-    if (!isset($module_blocks[$row['module']])) {
-      $module_blocks[$row['module']] = module_invoke($row['module'],'block','list');
-    }
-    // $key = strtr('theme--s--module--s--delta', $row);
-    $key = implode(CAT_PROFILE_FEATURES_DELIMITER, $row);
-    $blocks[$key] = $row['theme'] . ': ' . $module_blocks[$row['module']][$row['delta']]['info'];
+function cat_profile_taxonomy_features_export_options() {
+  $vocabs = array();
+  foreach (taxonomy_get_vocabularies() as $vid => $vocab) {
+    $vocabs[$vid] = $vocab->name;
   }
-  return $blocks;
+  return $vocabs;
 }
 
 /**
  * Implementation of hook_features_export().
+ * @author Elliot Pahl <elliot@catalyst.net.nz>
  * @author Josh Waihi <josh@catalyst.net.nz>
  */
-function cat_profile_blocks_features_export($data, &$export, $module_name = '') {
-  foreach ($data as $key => $title) {
-    $export['features']['cat_profile_blocks'][$key] = $title;
-    list($theme, $module, $delta) = explode(CAT_PROFILE_FEATURES_DELIMITER, $key);
-    $export['dependencies'][$module] = $module;
+function cat_profile_taxonomy_features_export($data, &$export, $module_name = '') {
+  foreach ($data as $vid) {
+    $export['features']['cat_profile_taxonomy'][$vid] = $vid;
   }
-  $export['dependencies'][] = 'block';
+  $export['dependencies'][] = 'taxonomy';
 }
 
 /**
  * Implementation of hook_features_export_render().
+ * @author Elliot Pahl <elliot@catalyst.net.nz>
  * @author Josh Waihi <josh@catalyst.net.nz>
  */
-function cat_profile_blocks_features_export_render($module_name, $data) {
+function cat_profile_taxonomy_features_export_render($module_name, $data) {
   module_load_include('inc', 'cat_profile');
-  $export = array();
-  foreach ($data as $key) {
-    list($theme, $module, $delta) = explode(CAT_PROFILE_FEATURES_DELIMITER, $key);
-    $export = array_merge($export, cat_profile_export_table('blocks', array('theme' => $theme, 'module' => $module, 'delta' => $delta)));
-  }
-  $code = '  $data = ' . features_var_export($export, '  ') . ';' . PHP_EOL;
-  $code .= '  return $data;';
-  return array('cat_profile_blocks' => $code);
+  $data = cat_profile_export_table('vocabulary', array('vid' => $data));
+  $code = ' $data = ' . features_var_export($data, '  ') . ';' . PHP_EOL;
+  $code .= ' return $data;';
+  return array('cat_profile_taxonomy' => $code);
 }
 
 /**
  * Implementation of hook_features_revert().
+ * @author Elliot Pahl <elliot@catalyst.net.nz>
  * @author Josh Waihi <josh@catalyst.net.nz>
  */
-function cat_profile_blocks_features_revert($module) {
-  $data = module_invoke($module, 'cat_profile_blocks');
-  foreach ($data['blocks'] as $row) {
-    cat_profile_data_revert($data, 'blocks', array('theme' => $row['theme'], 'module' => $row['module'], 'delta' => $row['delta']));
+function cat_profile_taxonomy_features_revert($module) {
+  $data = module_invoke($module, 'cat_profile_taxonomy');
+  $vids = array();
+  foreach ($data['vocabulary'] as $row) {
+    $vids[] = $row['vid'];
   }
+  cat_profile_data_revert($data, 'vocabulary', array('vid' => $vids));
 }
 
 /**
- * @} End of "ingroup blocks".
+ * @} End of "ingroup taxonomy".
  */
+
+/***********
+ * Contrib *
+ **********/
 
 /**
  * @ingroup messaging.
@@ -339,3 +346,66 @@ function cat_profile_messaging_features_revert($module = 'messaging') {
 /**
  * @} End of "ingroup messaging"
  */
+
+/**
+ * @ingroup workflow
+ * @{
+ */
+
+/**
+ * Implementation of hook_features_export_options().
+ * @author Josh Waihi <josh@catalyst.net.nz>
+ */
+function cat_profile_workflow_features_export_options()  {
+  $workflows = workflow_get_all();
+  return $workflows;
+}
+
+/**
+ * Implementation of hook_features_export().
+ * @author Josh Waihi <josh@catalyst.net.nz>
+ */
+function cat_profile_workflow_features_export($data, &$export, $module_name = '') {
+  foreach ($data as $wid) {
+    $workflow = workflow_load($wid);
+    $export['features']['cat_profile_workflow'][$wid] = $wid;
+    $rs = db_query("SELECT type FROM {workflow_type_map} WHERE wid = %d", $wid);
+    while ($type = db_result($rs)) {
+      $pipe['variable'][] = 'worflow_' . $type;
+    }
+  }
+  $export['dependencies'][] = 'workflow';
+  if (isset($pipe)) {
+    return $pipe;
+  }
+}
+
+/**
+ * Implementation of hook_features_export_render().
+ * @author Josh Waihi <josh@catalyst.net.nz>
+ */
+function cat_profile_workflow_features_export_render($module_name, $data) {
+  module_load_include('inc', 'cat_profile');
+  $data = cat_profile_export_table('workflows', array('wid' => $data));
+  $code = ' $data = ' . features_var_export($data, '  ') . ';' . PHP_EOL;
+  $code .= ' return $data;';
+  return array('cat_profile_workflow_data' => $code);
+}
+
+/**
+ * Implementation of hook_features_revert().
+ * @author Josh Waihi <josh@catalyst.net.nz>
+ */
+function cat_profile_workflow_features_revert($module) {
+  $data = module_invoke($module, 'cat_profile_workflow_data');
+  $wids = array();
+  foreach ($data['workflows'] as $row) {
+    $wids[] = $row['wid'];
+  }
+  cat_profile_data_revert($data, 'workflows', array('wid' => $wids));
+}
+
+/**
+ * @} End of "ingroup workflow"
+ */
+

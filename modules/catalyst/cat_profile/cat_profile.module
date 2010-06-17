@@ -55,34 +55,49 @@ function cat_profile_imagecache_default_presets() {
 /**
  * Implementation of hook_features_api().
  * @author Josh Waihi <josh@catalyst.net.nz>
+ * @author Elliot Pahl <elliot@catalyst.net.nz>
  */
 function cat_profile_features_api() {
-  return array(
-    'cat_profile_roles' => array(
-      'name' => t('Roles'),
-      'default_hook' => 'cat_profile_perms',
+  $features = array();
+
+  // Core
+  $features['cat_profile_blocks'] = array(
+    'name' => t('Blocks'),
+    'default_hook' => 'cat_profile_blocks',
+    'default_file' => FEATURES_DEFAULTS_INCLUDED,
+    'file' => drupal_get_path('module', 'cat_profile') .'/cat_profile.features.inc',
+  );
+  $features['cat_profile_roles'] = array(
+    'name' => t('Roles'),
+    'default_hook' => 'cat_profile_perms',
+    'default_file' => FEATURES_DEFAULTS_INCLUDED,
+    'file' => drupal_get_path('module', 'cat_profile') .'/cat_profile.features.inc',
+  );
+  $features['cat_profile_taxonomy'] = array(
+    'name' => t('Taxonomy'),
+    'default_hook' => 'cat_profile_taxonomy',
+    'default_file' => FEATURES_DEFAULTS_INCLUDED,
+    'file' => drupal_get_path('module', 'cat_profile') .'/cat_profile.features.inc',
+  );
+
+  // Contrib
+  if (module_exists('messaging')) {
+    $features['cat_profile_messaging'] = array(
+      'name' => t('Messaging'),
+      'default_hook' => 'cat_profile_messaging',
       'default_file' => FEATURES_DEFAULTS_INCLUDED,
-      'default_filename' => 'features.cat_profile.inc',
       'file' => drupal_get_path('module', 'cat_profile') .'/cat_profile.features.inc',
-    ),
-    'cat_profile_workflow' => array(
+    );
+  }
+  if (module_exists('workflow')) {
+    $features['cat_profile_workflow'] = array(
       'name' => t('Workflow'),
       'default_hook' => 'cat_profile_workflow_data',
       'default_file' => FEATURES_DEFAULTS_INCLUDED,
       'default_filename' => 'features.cat_profile.inc',
       'file' => drupal_get_path('module', 'cat_profile') .'/cat_profile.features.inc',
-    ),
-    'cat_profile_blocks' => array(
-      'name' => t('Blocks'),
-      'default_hook' => 'cat_profile_blocks',
-      'default_file' => FEATURES_DEFAULTS_INCLUDED,
-      'file' => drupal_get_path('module', 'cat_profile') .'/cat_profile.features.inc',
-    ),
-    'cat_profile_messaging' => array(
-      'name' => t('Messaging'),
-      'default_hook' => 'cat_profile_messaging',
-      'default_file' => FEATURES_DEFAULTS_INCLUDED,
-      'file' => drupal_get_path('module', 'cat_profile') .'/cat_profile.features.inc',
-    ),
-  );
+    );
+  }
+
+  return $features;
 }

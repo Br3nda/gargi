@@ -12,6 +12,67 @@ function cat_profile_schema_alter(&$schemas) {
   }
 }
 
+/**********
+ *  Core  *
+ *********/
+
+/**
+ * Define available static fields in {blocks}.
+ */
+function cat_profile_schema_blocks_alter(&$schema) {
+  $schema['cat_profile_static_fields'] = array('module', 'theme', 'delta', 'status', 'weight', 'region', 'custom', 'throttle', 'visibility', 'pages', 'title', 'cache');
+}
+
+/**
+ * Define available static fields in {term_data}.
+ */
+function cat_profile_schema_term_data_alter(&$schema) {
+  $schema['cat_profile_static_fields'] = array_keys($schema['fields']);
+  $schema['cat_profile_export'] = array(
+    'term_hierarchy' => 'tid',
+    'term_synonym' => 'tid',
+    //'term_relation' => // FIXME: See cat_profile_schema_term_relation_alter()
+  );
+}
+
+/**
+ * Define available static fields in {term_hierarchy}.
+ */
+function cat_profile_schema_term_hierarchy_alter(&$schema) {
+  $schema['cat_profile_static_fields'] = array_keys($schema['fields']);
+}
+
+/**
+ * Define available static fields in {term_relation}.
+ */
+/*
+function cat_profile_schema_term_relation_alter(&$schema) {
+  $schema['cat_profile_static_fields'] = array('tid1', 'tid2');
+  // FIXME: Currently unable to export foreign keys with different names
+}
+//*/
+
+/**
+ * Define available static fields in {term_synonym}.
+ */
+function cat_profile_schema_term_synonym_alter(&$schema) {
+  $schema['cat_profile_static_fields'] = array('tid', 'name');
+}
+
+/**
+ * Define available static fields in {vocabulary}.
+ */
+function cat_profile_schema_vocabulary_alter(&$schema) {
+  $schema['cat_profile_static_fields'] = array_keys($schema['fields']);
+  $schema['cat_profile_export'] = array(
+    'term_data' => 'vid',
+  );
+}
+
+/***********
+ * Contrib *
+ ***********/
+
 /**
  * Define available static fields in {workflows}.
  */
@@ -57,9 +118,3 @@ function cat_profile_schema_workflow_type_map_alter(&$schema) {
   }
 }
 
-/**
- * Define available static fields in {blocks}.
- */
-function cat_profile_schema_blocks_alter(&$schema) {
-  $schema['cat_profile_static_fields'] = array('module', 'theme', 'delta', 'status', 'weight', 'region', 'custom', 'throttle', 'visibility', 'pages', 'title', 'cache');
-}
