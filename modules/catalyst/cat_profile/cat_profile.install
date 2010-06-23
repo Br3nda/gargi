@@ -66,7 +66,15 @@ function cat_profile_schema_vocabulary_alter(&$schema) {
   $schema['cat_profile_static_fields'] = array_keys($schema['fields']);
   $schema['cat_profile_export'] = array(
     'term_data' => 'vid',
+    'vocabulary_node_types' => 'vid',
   );
+}
+
+/**
+ *  Define available static fields in {vocabulary_node_types}.
+ */
+function cat_profile_schema_vocabulary_node_types_alter(&$schema) {
+  $schema['cat_profile_static_fields'] = array_keys($schema['fields']);
 }
 
 /***********
