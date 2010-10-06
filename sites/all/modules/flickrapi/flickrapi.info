@@ -1,0 +1,11 @@
+; $Id: flickrapi.info,v 1.2 2008/10/18 06:27:40 bjshell Exp $
+name = FlickrAPI
+description = Use Flickr APIs with Drupal using phpFlickr
+package = Flickr
+core = 6.x
+; Information added by drupal.org packaging script on 2010-08-18
+version = "6.x-1.0"
+core = "6.x"
+project = "flickrapi"
+datestamp = "1282137093"
+

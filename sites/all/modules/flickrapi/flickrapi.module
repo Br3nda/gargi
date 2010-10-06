@@ -1,0 +1,119 @@
+<?php
+// $Id: flickrapi.module,v 1.2 2008/10/18 06:27:40 bjshell Exp $
+
+/**
+ * Implementation of hook_menu().
+ */
+function flickrapi_menu() {
+  $items = array();
+  $items['admin/settings/flickrapi'] = array(
+    'title' => 'Flickr API Settings',
+    'description' => 'Configure Flickr API credentials.',
+    'access arguments' => array('administer site configuration'),
+    'type' => MENU_NORMAL_ITEM,
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('flickrapi_admin_settings')
+  );
+  return $items;
+}
+
+function flickrapi_admin_settings() {
+  $form = array();
+	
+  $form['flickrapi_api_key'] = array(
+    '#type' => 'textfield',
+    '#title' => t('API Key'),
+    '#required' => TRUE,
+    '#default_value' => variable_get('flickrapi_api_key', ''),
+    '#description' => t('API Key from Flickr'),
+  );
+  $form['flickrapi_api_secret'] = array(
+    '#type' => 'textfield',
+    '#title' => t('API Shared Secret'),
+    '#required' => FALSE,
+    '#default_value' => variable_get('flickrapi_api_secret', ''),
+    '#description' => t("API key's secret from Flickr."),
+  );
+  $times = array(900, 1800, 2700, 3600, 7200, 10800, 14400, 18000, 21600, 43200, 86400);
+  $ageoptions = drupal_map_assoc($times, 'format_interval');
+  $form['flickrapi_cache_duration'] = array(
+    '#type' => 'select',
+    '#title' => t('Update interval'),
+    '#options' => $ageoptions,
+    '#default_value' => variable_get('flickrapi_cache_duration', 3600),
+    '#description' => t("The refresh interval indicating how often you want to check cached Flickr API calls are up to date."),
+  );
+  
+  $form['#validate'][] = 'flickrapi_admin_settings_validate';
+  return system_settings_form($form);
+}
+
+function flickrapi_admin_settings_validate($form, &$form_state) {
+  $key = trim($form_state['values']['flickrapi_api_key']);
+  $sec = trim($form_state['values']['flickrapi_api_secret']);
+	
+  if ($key && (preg_match('/^[A-Fa-f\d]{32}$/', $key) != 1)) {
+    form_set_error('flickrapi_api_key', t('This does not appear to be a Flickr API key.'));
+  }
+  if ($sec && (preg_match('/^[A-Fa-f\d]{16}$/', $sec) != 1)) {
+    form_set_error('flickrapi_api_secret', t('This does not appear to be a Flickr API secret.'));
+  }
+}
+
+/**
+ * returns the phpFlickr object.
+ * If we need to change anything, such as making the cache configuration,
+ * then it'll all be done here.
+ */
+function flickrapi_phpFlickr() {
+  module_load_include('php', 'flickrapi', 'phpFlickr/phpFlickr');
+  
+  $api_key = variable_get('flickrapi_api_key', '');
+  if (!$api_key) {
+    drupal_set_message(t("Flickr API key not set"), 'error');
+    if (user_access('Administer global flickr api settings')) {
+      drupal_set_message(t("Goto !link to configure the Flickr API settings", array('!link' => l('admin/settings/flickrapi', 'admin/settings/flickrapi'))));
+    }
+  }
+  $flickr = new phpFlickr($api_key);
+  $flickr->enableCache("fs", variable_get('flickrcachepath', '/tmp'));
+  return $flickr;
+}
+
+/**
+ * Tries to match an 'identifier' onto a flickr nsid
+ *
+ * This function will first see whether $identifier is allready
+ * a nsid (format check only, no api call).  If it is not and the
+ * identifier has the format of an email, an api call will be made to
+ * check whether there is an nsid for that email.  If this is not the
+ * case, the $identifier is treated as a username and an api call is
+ * made to find the nsid for that username.
+ *
+ * If none of these succees, the result will be false
+ *
+ * @param $identifier
+ *   identifier to find an nsid for
+ *
+ * @return
+ *   valid nsid or false if none can be found
+ */
+function flickrapi_get_user_nsid($identifier) {
+  if (flickrapi_is_nsid($identifier)) {
+    //identifier is an NSID
+    return $identifier;
+  }
+  $f = flickrapi_phpFlickr();
+  if (valid_email_address($identifier) && ($user = $f->people_findByEmail($identifier))) {
+    return $user['nsid'];
+  }
+  if ($user = $f->people_findByUsername($identifier)) {
+    return $user['nsid'];
+  }
+  
+  return FALSE;
+}
+
+function flickrapi_is_nsid($id) {
+  return preg_match('/^\d+@N\d+$/', $id);
+}

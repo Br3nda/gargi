@@ -1,0 +1,12 @@
+// $Id: INSTALL.txt,v 1.2 2008/10/18 06:27:40 bjshell Exp $
+
+INSTALLATION:
+
+1) Place this module directory in your modules folder (this will usually be
+   "sites/all/modules/").
+
+2) Enable the module.
+
+3) Go to Administer/Site configuration/Flickr API Settings
+
+4) Enter your API Key and optionally your API Shared Secret. See http://www.flickr.com/services/api to register for a key.  This module serves as a helper for other Drupal Flickr modules, so whether or not the Shared Secret is needed is up to other modules.
