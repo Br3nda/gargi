@@ -1,0 +1,4 @@
+name = Tiddly
+description = An entire tiddly wiki in a node
+package = Content Types
+core = 6.x
