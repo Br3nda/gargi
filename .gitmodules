@@ -22,3 +22,6 @@
 [submodule "sites/all/modules/vertical_tabs"]
 	path = sites/all/modules/vertical_tabs
 	url = git@github.com:Br3nda/drupal-module-vertical_tabs.git
+[submodule "sites/all/modules/jquery_ui"]
+	path = sites/all/modules/jquery_ui
+	url = git@github.com:Br3nda/drupal-module-jquery_ui.git
