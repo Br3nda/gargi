@@ -1,0 +1,21 @@
+[submodule "sites/all/modules/admin"]
+	path = sites/all/modules/admin
+	url = git@github.com:Br3nda/drupal-module-admin.git
+[submodule "sites/all/modules/panels"]
+	path = sites/all/modules/panels
+	url = git@github.com:Br3nda/drupal-module-panels.git
+[submodule "sites/all/modules/flickr"]
+	path = sites/all/modules/flickr
+	url = git@github.com:Br3nda/drupal-module-flickr.git
+[submodule "sites/all/modules/mailarchive"]
+	path = sites/all/modules/mailarchive
+	url = git@github.com:Br3nda/drupal-module-mailarchive.git
+[submodule "sites/all/modules/twitter"]
+	path = sites/all/modules/twitter
+	url = git@github.com:Br3nda/drupal-module-twitter.git
+[submodule "sites/all/modules/boost"]
+	path = sites/all/modules/boost
+	url = git@github.com:Br3nda/drupal-module-boost.git
+[submodule "sites/all/modules/job_queue"]
+	path = sites/all/modules/job_queue
+	url = git@github.com:Br3nda/drupal-module-job_queue.git

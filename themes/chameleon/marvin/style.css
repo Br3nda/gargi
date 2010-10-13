@@ -5,7 +5,7 @@
 */
 body {
   background: #fff url(druplicon-watermark.png) no-repeat top right; /* LTR */
-  font-family: arial, helvetica, sans-serif;
+  font-family: tahoma, verdana, arial, helvetica, sans-serif;
 }
 a:link {
   color: #656
