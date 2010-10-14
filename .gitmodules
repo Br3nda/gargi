@@ -28,3 +28,6 @@
 [submodule "sites/all/modules/feeds"]
 	path = sites/all/modules/feeds
 	url = git@github.com:Br3nda/drupal-module-feeds.git
+[submodule "sites/all/modules/comment_upload"]
+	path = sites/all/modules/comment_upload
+	url = git@github.com:Br3nda/drupal-module-comment_upload.git
