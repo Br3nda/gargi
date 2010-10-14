@@ -25,3 +25,6 @@
 [submodule "sites/all/modules/jquery_ui"]
 	path = sites/all/modules/jquery_ui
 	url = git@github.com:Br3nda/drupal-module-jquery_ui.git
+[submodule "sites/all/modules/feeds"]
+	path = sites/all/modules/feeds
+	url = git@github.com:Br3nda/drupal-module-feeds.git
