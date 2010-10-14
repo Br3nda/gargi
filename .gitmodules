@@ -31,3 +31,9 @@
 [submodule "sites/all/modules/comment_upload"]
 	path = sites/all/modules/comment_upload
 	url = git@github.com:Br3nda/drupal-module-comment_upload.git
+[submodule "sites/all/modules/apachesolr"]
+	path = sites/all/modules/apachesolr
+	url = git@github.com:Br3nda/drupal-module-apachesolr.git
+[submodule "sites/all/modules/advanced_help"]
+	path = sites/all/modules/advanced_help
+	url = git@github.com:Br3nda/drupal-module-advanced_help.git
