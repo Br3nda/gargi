@@ -37,3 +37,6 @@
 [submodule "sites/all/modules/advanced_help"]
 	path = sites/all/modules/advanced_help
 	url = git@github.com:Br3nda/drupal-module-advanced_help.git
+[submodule "sites/all/modules/shadowbox"]
+	path = sites/all/modules/shadowbox
+	url = git@github.com:Br3nda/drupal-module-shadowbox.git
