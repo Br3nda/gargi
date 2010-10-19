@@ -43,3 +43,9 @@
 [submodule "sites/all/modules/messaging"]
 	path = sites/all/modules/messaging
 	url = git@github.com:Br3nda/drupal-module-messaging.git
+[submodule "sites/all/modules/autoload"]
+	path = sites/all/modules/autoload
+	url = git@github.com:Br3nda/drupal-module-autoload.git
+[submodule "sites/all/modules/flickrbatchimport"]
+	path = sites/all/modules/flickrbatchimport
+	url = git@github.com:Br3nda/Flickr-Batch-Import.git
