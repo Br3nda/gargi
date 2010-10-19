@@ -48,4 +48,7 @@
 	url = git@github.com:Br3nda/drupal-module-autoload.git
 [submodule "sites/all/modules/flickrbatchimport"]
 	path = sites/all/modules/flickrbatchimport
-	url = git@github.com:Br3nda/Flickr-Batch-Import.git
+	url = git@github.com:Br3nda/drupal-module-flickrbatchimport.git
+[submodule "sites/all/modules/creativecommons"]
+	path = sites/all/modules/creativecommons
+	url = git@github.com:Br3nda/drupal-module-creativecommons.git
