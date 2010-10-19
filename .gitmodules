@@ -40,3 +40,6 @@
 [submodule "sites/all/modules/shadowbox"]
 	path = sites/all/modules/shadowbox
 	url = git@github.com:Br3nda/drupal-module-shadowbox.git
+[submodule "sites/all/modules/messaging"]
+	path = sites/all/modules/messaging
+	url = git@github.com:Br3nda/drupal-module-messaging.git
