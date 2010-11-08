@@ -1,7 +1,0 @@
-This directory holds upstream contrib modules that have required patches for
-some specific functionality. The policy in this directory is to download the
-module, check it in to Git, apply your patches, including a URL to the d.o
-issue ticket in the commit message if there is one.
-
-When it comes time to update one of these modules, download the new version
-and apply the same patches again, if necessary.
